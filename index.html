@@ -1285,7 +1285,14 @@
       Rote Fäden · фан-сообщество. Не связано с автором и издателями «Токийского гуля».
     </div>
   </footer>
-
+<!-- Пасхалка -->
+<div class="egg" id="egg">
+  <div class="egg-box">
+    <h3>Пасхалка найдена 😎</h3>
+    <p>Векрорника 676767 сама такая</p>
+    <button class="btn" id="eggClose">Закрыть</button>
+  </div>
+</div>
   <script>
     /* ==========================================================
        ✏️  ВСЁ, ЧТО НУЖНО МЕНЯТЬ, НАХОДИТСЯ ВОТ ЗДЕСЬ
@@ -1821,6 +1828,25 @@
     } else {
       revealItems.forEach((item) => item.classList.add("visible"));
     }
+    // Пасхалка: 5 нажатий на ник владельца
+const EGG_TAG = "@ronifrag";
+let eggClicks = 0;
+
+$("staffList").addEventListener("click", (e) => {
+  const person = e.target.closest(".person");
+  if (!person || !person.textContent.includes(EGG_TAG)) return;
+
+  eggClicks++;
+  if (eggClicks >= 5) {
+    $("egg").classList.add("show");
+    eggClicks = 0;
+  }
+});
+
+$("eggClose").addEventListener("click", () => $("egg").classList.remove("show"));
+$("egg").addEventListener("click", (e) => {
+  if (e.target.id === "egg") $("egg").classList.remove("show");
+});
   </script>
 </body>
 </html>
