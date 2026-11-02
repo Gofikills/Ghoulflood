@@ -1,4 +1,4 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
@@ -20,6 +20,9 @@
   --card-border: rgba(255, 255, 255, 0.09);
   --red: #d00f25;
   --red-bright: #ff2d46;
+  --accent-rgb: 208, 15, 37;
+  --glow-rgb: 255, 45, 70;
+  --nav-bg: rgba(10, 10, 13, 0.78);
   --text: #ececf1;
   --muted: #9a9aa8;
   --radius: 18px;
@@ -100,7 +103,7 @@ section {
 .btn:hover {
   background: var(--red-bright);
   border-color: var(--red-bright);
-  box-shadow: 0 0 28px rgba(255, 45, 70, 0.5);
+  box-shadow: 0 0 28px rgba(var(--glow-rgb), 0.5);
   transform: translateY(-2px);
 }
 
@@ -125,7 +128,7 @@ section {
   left: 0;
   right: 0;
   z-index: 50;
-  background: rgba(10, 10, 13, 0.78);
+  background: var(--nav-bg);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--card-border);
@@ -185,7 +188,7 @@ section {
   text-align: center;
   overflow: hidden;
   background:
-    radial-gradient(ellipse at 50% 0%, rgba(208, 15, 37, 0.28), transparent 60%),
+    radial-gradient(ellipse at 50% 0%, rgba(var(--accent-rgb), 0.28), transparent 60%),
     var(--bg);
 }
 
@@ -197,7 +200,7 @@ section {
   left: 50%;
   font-size: clamp(9rem, 38vw, 26rem);
   font-weight: 900;
-  color: rgba(208, 15, 37, 0.07);
+  color: rgba(var(--accent-rgb), 0.07);
   white-space: nowrap;
   transform: translate(-50%, -50%);
   pointer-events: none;
@@ -240,16 +243,16 @@ section {
   letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--red-bright);
-  border: 1px solid rgba(255, 45, 70, 0.4);
+  border: 1px solid rgba(var(--glow-rgb), 0.4);
   border-radius: 50px;
-  background: rgba(208, 15, 37, 0.1);
+  background: rgba(var(--accent-rgb), 0.1);
 }
 
 .hero h1 {
   margin-bottom: 20px;
   font-size: clamp(2.3rem, 8vw, 4.6rem);
   line-height: 1.1;
-  text-shadow: 0 0 40px rgba(208, 15, 37, 0.45);
+  text-shadow: 0 0 40px rgba(var(--accent-rgb), 0.45);
 }
 
 .hero h1 em {
@@ -291,7 +294,7 @@ section {
 
 .feature:hover {
   transform: translateY(-5px);
-  border-color: rgba(255, 45, 70, 0.5);
+  border-color: rgba(var(--glow-rgb), 0.5);
 }
 
 .feature-icon {
@@ -332,7 +335,7 @@ section {
 }
 
 .rule[open] {
-  border-color: rgba(255, 45, 70, 0.5);
+  border-color: rgba(var(--glow-rgb), 0.5);
 }
 
 .rule summary {
@@ -412,7 +415,7 @@ section {
   padding: 10px 14px;
   font-size: 0.92rem;
   color: var(--muted);
-  background: rgba(208, 15, 37, 0.08);
+  background: rgba(var(--accent-rgb), 0.08);
   border-left: 3px solid var(--red);
   border-radius: 0 10px 10px 0;
 }
@@ -441,8 +444,8 @@ section {
 .penalty-step {
   padding: 5px 14px;
   font-size: 0.88rem;
-  background: rgba(255, 45, 70, 0.1);
-  border: 1px solid rgba(255, 45, 70, 0.35);
+  background: rgba(var(--glow-rgb), 0.1);
+  border: 1px solid rgba(var(--glow-rgb), 0.35);
   border-radius: 50px;
 }
 
@@ -466,9 +469,9 @@ section {
   gap: 18px;
   padding: 24px;
   background: var(--card);
-  border: 1px solid rgba(255, 45, 70, 0.4);
+  border: 1px solid rgba(var(--glow-rgb), 0.4);
   border-radius: var(--radius);
-  box-shadow: 0 0 30px rgba(208, 15, 37, 0.12);
+  box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.12);
 }
 
 .when-icon {
@@ -584,8 +587,8 @@ section {
   display: flex;
   gap: 14px;
   padding: 16px 20px;
-  background: rgba(208, 15, 37, 0.08);
-  border: 1px solid rgba(255, 45, 70, 0.35);
+  background: rgba(var(--accent-rgb), 0.08);
+  border: 1px solid rgba(var(--glow-rgb), 0.35);
   border-radius: 14px;
 }
 
@@ -620,8 +623,8 @@ section {
 .inter-card.wide {
   grid-column: 1 / -1;
   flex-direction: column;
-  border-color: rgba(255, 45, 70, 0.4);
-  box-shadow: 0 0 30px rgba(208, 15, 37, 0.12);
+  border-color: rgba(var(--glow-rgb), 0.4);
+  box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.12);
 }
 
 .inter-row {
@@ -658,7 +661,7 @@ section {
 .day.on {
   font-weight: 700;
   color: #fff;
-  background: rgba(208, 15, 37, 0.22);
+  background: rgba(var(--accent-rgb), 0.22);
   border-color: var(--red-bright);
 }
 
@@ -793,7 +796,7 @@ section {
 }
 
 .rank-card:hover {
-  border-color: rgba(255, 45, 70, 0.45);
+  border-color: rgba(var(--glow-rgb), 0.45);
 }
 
 .rank-card.vacant {
@@ -1002,8 +1005,8 @@ section {
 .admin-bans {
   margin-top: 26px;
   padding: 22px 24px;
-  background: rgba(208, 15, 37, 0.1);
-  border: 1px solid rgba(255, 45, 70, 0.5);
+  background: rgba(var(--accent-rgb), 0.1);
+  border: 1px solid rgba(var(--glow-rgb), 0.5);
   border-radius: var(--radius);
 }
 
@@ -1025,8 +1028,8 @@ section {
 .remember {
   margin-top: 26px;
   padding: 22px 24px;
-  background: rgba(208, 15, 37, 0.08);
-  border: 1px solid rgba(255, 45, 70, 0.35);
+  background: rgba(var(--accent-rgb), 0.08);
+  border: 1px solid rgba(var(--glow-rgb), 0.35);
   border-radius: var(--radius);
 }
 
@@ -1151,7 +1154,7 @@ footer {
   background: #15151c;
   border: 1px solid var(--red-bright);
   border-radius: 22px;
-  box-shadow: 0 0 40px rgba(208, 15, 37, 0.4);
+  box-shadow: 0 0 40px rgba(var(--accent-rgb), 0.4);
 }
 
 .egg-box h3 {
@@ -1232,8 +1235,8 @@ footer {
 }
 
 @keyframes soon-pulse {
-  0%, 100% { box-shadow: 0 0 0 rgba(255, 45, 70, 0); }
-  50%      { box-shadow: 0 0 18px rgba(255, 45, 70, 0.55); }
+  0%, 100% { box-shadow: 0 0 0 rgba(var(--glow-rgb), 0); }
+  50%      { box-shadow: 0 0 18px rgba(var(--glow-rgb), 0.55); }
 }
 
 .inter-card.wide .countdown {
@@ -1256,6 +1259,20 @@ footer {
 .person .avatar {
   overflow: hidden;
 }
+.person button.avatar {
+  flex: 0 0 42px;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+.person button.avatar:hover,
+.person button.avatar:focus-visible {
+  outline: none;
+  transform: scale(1.06);
+  box-shadow: 0 0 0 3px rgba(var(--glow-rgb),.24), 0 0 22px rgba(var(--glow-rgb),.32);
+}
 
 .person .avatar img {
   display: block;
@@ -1273,7 +1290,7 @@ footer {
   padding: 11px 22px;
   font-size: 0.95rem;
   background: #1c1c26;
-  border: 1px solid rgba(255, 45, 70, 0.5);
+  border: 1px solid rgba(var(--glow-rgb), 0.5);
   border-radius: 50px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
   opacity: 0;
@@ -1292,9 +1309,207 @@ footer {
   .cd b { font-size: 1.4rem; }
 }
 
-  </style>
+
+
+/* ==========================================================
+   Живой фон кагуне и экран загрузки
+   ========================================================== */
+.kagune-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+  opacity: .76;
+}
+.kagune-bg::before,
+.kagune-bg::after {
+  content: "";
+  position: absolute;
+  inset: -22%;
+  background:
+    radial-gradient(ellipse at 18% 32%, rgba(var(--accent-rgb),.22) 0, transparent 24%),
+    radial-gradient(ellipse at 82% 72%, rgba(var(--glow-rgb),.16) 0, transparent 25%),
+    radial-gradient(ellipse at 56% 18%, rgba(var(--accent-rgb),.12) 0, transparent 22%);
+  filter: blur(76px);
+  animation: kagune-glow 20s ease-in-out infinite alternate;
+}
+.kagune-bg::after {
+  opacity: .62;
+  transform: scaleX(-1);
+  animation-duration: 27s;
+  animation-direction: alternate-reverse;
+}
+.kagune-tendril {
+  position: absolute;
+  width: min(48vw, 560px);
+  height: min(95vh, 900px);
+  opacity: .34;
+  filter: drop-shadow(0 0 16px rgba(255, 25, 55, .25));
+  transform-origin: 50% 10%;
+  animation: kagune-sway 17s ease-in-out infinite alternate;
+}
+.kagune-tendril.left { left: -12vw; top: 5vh; }
+.kagune-tendril.right { right: -13vw; bottom: -8vh; transform: scaleX(-1) rotate(-12deg); animation-delay: -8s; }
+.kagune-tendril path.flesh { fill: url(#kaguneFlesh); stroke: rgba(255, 69, 91, .3); stroke-width: 1.5; }
+.kagune-tendril path.fiber { fill: none; stroke: rgba(255, 74, 92, .54); stroke-width: 2.2; stroke-linecap: round; }
+.kagune-tendril path.vein { fill: none; stroke: rgba(255, 111, 124, .27); stroke-width: 1; stroke-linecap: round; }
+@keyframes kagune-glow {
+  from { transform: translate(-3%, -1%) scale(.96); }
+  to { transform: translate(4%, 5%) scale(1.06); }
+}
+@keyframes kagune-sway {
+  from { margin-left: -1.5vw; rotate: -4deg; }
+  to { margin-left: 2vw; rotate: 5deg; }
+}
+/* Страницы остаются над декоративным слоем */
+/* Не меняем positioning дочерних блоков: fixed-навигация должна оставаться fixed. */
+body > :not(.kagune-bg) { z-index: 1; }
+.nav { z-index: 50; }
+.egg { z-index: 200; }
+
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #08080b;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .75s ease, visibility .75s ease;
+}
+.splash::before {
+  content: "";
+  position: absolute;
+  width: min(90vw, 700px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--accent-rgb),.27), transparent 68%);
+  filter: blur(20px);
+  animation: splash-pulse 1.8s ease-in-out infinite alternate;
+}
+.splash.dismissed { opacity: 0; visibility: hidden; pointer-events: none; }
+.splash-content { position: relative; text-align: center; animation: splash-rise .85s ease both; }
+.splash-kanji { display: block; color: var(--red-bright); font-size: clamp(4rem, 13vw, 7rem); line-height: 1; text-shadow: 0 0 34px rgba(var(--glow-rgb),.42); }
+.splash-name { margin-top: 18px; font-size: clamp(1.4rem, 5vw, 2rem); letter-spacing: .22em; font-weight: 700; }
+.splash-rule { width: 74px; height: 2px; margin: 19px auto 0; background: var(--red-bright); box-shadow: 0 0 15px var(--red-bright); animation: splash-line 1s ease .15s both; }
+@keyframes splash-pulse { from { transform: scale(.86); opacity: .55; } to { transform: scale(1.08); opacity: .95; } }
+@keyframes splash-rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes splash-line { from { transform: scaleX(.15); opacity: 0; } to { transform: scaleX(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .kagune-bg, .kagune-bg::before, .kagune-bg::after, .kagune-tendril, .splash::before,
+  .splash-content, .splash-rule { animation: none !important; }
+  .splash { transition-duration: .2s; }
+}
+
+  
+/* CCG / Гули — единая палитра, меняется без перезагрузки */
+.nav-actions { display: flex; align-items: center; gap: 10px; }
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 5px 12px 5px 7px;
+  color: var(--text);
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color .35s, background .35s, border-color .35s, box-shadow .35s, transform .2s;
+}
+.theme-toggle:hover { transform: translateY(-1px); box-shadow: 0 0 18px rgba(var(--glow-rgb), .18); border-color: var(--red-bright); }
+.theme-toggle:focus-visible { outline: 2px solid var(--red-bright); outline-offset: 3px; }
+.theme-toggle-icon {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  color: var(--red-bright);
+  font-size: 1.05rem;
+  background: rgba(var(--glow-rgb), .12);
+  border: 1px solid rgba(var(--glow-rgb), .3);
+  border-radius: 50%;
+  transition: color .35s, background .35s, border-color .35s, transform .45s;
+}
+.theme-toggle:hover .theme-toggle-icon { transform: rotate(-12deg) scale(1.06); }
+
+:root[data-theme="ccg"] {
+  color-scheme: light;
+  --bg: #f2f4f5;
+  --bg-soft: #e8ecef;
+  --card: rgba(255, 255, 255, .72);
+  --card-border: rgba(31, 49, 65, .13);
+  --red: #314b63;
+  --red-bright: #557f9d;
+  --accent-rgb: 43, 69, 91;
+  --glow-rgb: 93, 145, 177;
+  --text: #17232e;
+  --muted: #687783;
+  --nav-bg: rgba(244, 247, 249, .82);
+}
+:root[data-theme="ccg"] body { background: var(--bg); }
+:root[data-theme="ccg"] .nav { box-shadow: 0 8px 28px rgba(25, 45, 62, .06); }
+:root[data-theme="ccg"] .hero { background: radial-gradient(ellipse at 50% 0%, rgba(var(--glow-rgb), .16), transparent 62%), var(--bg); }
+:root[data-theme="ccg"] .hero::before { content: "CCG"; color: rgba(43, 69, 91, .055); letter-spacing: .08em; }
+:root[data-theme="ccg"] .btn { color: #fff; }
+:root[data-theme="ccg"] .btn-outline { color: var(--text); border-color: rgba(31,49,65,.25); }
+:root[data-theme="ccg"] .btn-outline:hover { color: var(--red); background: rgba(255,255,255,.72); border-color: var(--red); }
+:root[data-theme="ccg"] .person { background: rgba(30, 48, 64, .045); }
+:root[data-theme="ccg"] .person.copyable:hover { background: rgba(30,48,64,.09); }
+:root[data-theme="ccg"] .rule-note,
+:root[data-theme="ccg"] .callout { background: rgba(var(--glow-rgb), .08); }
+:root[data-theme="ccg"] .rule-note { border-color: rgba(var(--glow-rgb), .3); }
+:root[data-theme="ccg"] .toast { color: var(--text); background: #fff; border-color: rgba(var(--glow-rgb), .4); box-shadow: 0 8px 28px rgba(30,48,64,.14); }
+:root[data-theme="ccg"] .egg { background: rgba(17, 29, 39, .48); }
+:root[data-theme="ccg"] .egg-box { background: #f8fafb; box-shadow: 0 12px 50px rgba(39, 69, 92, .18); }
+:root[data-theme="ccg"] .splash { background: #f2f4f5; color: var(--text); }
+:root[data-theme="ccg"] .splash::before { background: radial-gradient(circle, rgba(var(--glow-rgb), .2), transparent 68%); }
+:root[data-theme="ccg"] .kagune-tendril { filter: hue-rotate(145deg) saturate(.68) drop-shadow(0 0 16px rgba(73, 126, 160, .17)); opacity: .2; }
+:root[data-theme="ccg"] .kagune-bg { opacity: .5; }
+:root[data-theme="ccg"] .theme-toggle-icon { color: #355873; background: rgba(82, 129, 160, .12); border-color: rgba(82,129,160,.28); }
+:root[data-theme="ccg"] .theme-toggle:hover { box-shadow: 0 0 18px rgba(73, 126, 160, .2); }
+:root[data-theme="ccg"] .rank-badge { background: rgba(255,255,255,.48); }
+:root[data-theme="ccg"] .logo span { font-size: 0; }
+:root[data-theme="ccg"] .logo span::after { content: "CCG"; display: inline-block; padding: 1px 5px; color: var(--red-bright); font-size: .78rem; letter-spacing: .04em; border: 1px solid rgba(var(--glow-rgb), .45); border-radius: 4px; }
+:root[data-theme="ccg"] .person .avatar { background: linear-gradient(135deg, #6689a2, #30485d); }
+:root[data-theme="ccg"] .day { background: rgba(31,49,65,.035); }
+:root[data-theme="ccg"] .day.on { background: rgba(var(--glow-rgb),.13); color: #243b50; }
+:root[data-theme="ccg"] .filter { color: var(--text); }
+:root[data-theme="ccg"] .filter.active { color: #fff; }
+:root[data-theme="ccg"] .filter:hover { border-color: rgba(31,49,65,.3); }
+:root[data-theme="ccg"] #roleSearch { color: var(--text); }
+
+body, .nav, .hero, .feature, .rule, .inter-card, .role-card, .rank-card, .egg-box, .toast {
+  transition: color .35s ease, background-color .4s ease, border-color .35s ease, box-shadow .4s ease;
+}
+@media (max-width: 640px) {
+  .nav-actions { gap: 5px; }
+  .theme-toggle { min-height: 36px; padding: 4px 9px 4px 5px; gap: 6px; font-size: .7rem; }
+  .theme-toggle-icon { width: 24px; height: 24px; }
+  .nav-inner { gap: 8px; }
+}
+</style>
+<script>
+  try { if (localStorage.getItem("rote-faden-theme") === "ccg") document.documentElement.dataset.theme = "ccg"; } catch (_) {}
+</script>
 </head>
 <body>
+  <div class="kagune-bg" aria-hidden="true">
+    <svg class="kagune-tendril left" viewBox="0 0 420 900" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="kaguneFlesh" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff465e" stop-opacity=".03"/><stop offset=".5" stop-color="#bd0929" stop-opacity=".56"/><stop offset="1" stop-color="#590814" stop-opacity=".08"/></linearGradient></defs><path class="flesh" d="M42 900C88 791 34 685 96 566c47-90 119-145 88-258-19-69-69-142-34-260 9 83 96 140 101 249 4 78-45 139-11 211 18-65 50-129 112-171-38 78-56 147-30 215 34 89-8 169 6 247 10 55 44 84 82 101-94-13-153-75-166-164-11-69 24-127-7-188-26 101-87 146-95 245-7 78 20 128 51 207-72-37-125-91-139-159-23 42-25 91-12 159z"/><path class="fiber" d="M27 887C104 762 49 682 120 559S218 372 169 253M83 817C175 711 105 639 187 510s84-210 50-312M183 852C125 731 236 660 230 560s-64-127-31-218M71 710c33-48 69-78 112-98M154 474c-3-56-31-106-18-153"/><path class="vein" d="M65 841c32-61 39-112 25-160m59-54c37-74 84-106 115-150m-70 327c-13-60-1-110 26-153m-82-270c29-49 37-90 30-128"/></svg>
+    <svg class="kagune-tendril right" viewBox="0 0 420 900" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="kaguneFleshR" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#ff465e" stop-opacity=".03"/><stop offset=".48" stop-color="#d20f35" stop-opacity=".48"/><stop offset="1" stop-color="#570711" stop-opacity=".06"/></linearGradient></defs><path class="flesh" style="fill:url(#kaguneFleshR)" d="M18 900c75-93 110-188 73-273-31-71-75-128-44-220 24-70 86-113 77-198-8-70-42-122-20-209 47 82 80 160 61 249-15 71-56 115-41 182 34-50 79-84 132-106-54 61-83 115-78 178 6 84 73 135 65 221-5 60-34 121-9 176 18-61 50-100 92-129-45 70-55 126-42 210-54-39-82-88-85-148-38 55-83 96-140 112z"/><path class="fiber" d="M32 876c62-95 105-163 69-253s-76-141-33-220m90 469c-47-83-8-158-35-240s-87-121-62-208m167 372c-60-62-70-126-41-190s27-118-9-172M107 531c48-34 88-52 132-56m-55-121c18-47 15-91-2-133"/><path class="vein" d="M62 814c29-48 55-84 54-130m79 60c-17-52-7-100 24-143m-88-162c-2-52 17-90 45-125m54 440c-21-37-24-76-16-114"/></svg>
+  </div>
+  <div class="splash" id="splash" role="status" aria-label="Загрузка Rote Fäden">
+    <div class="splash-content"><span class="splash-kanji">喰種</span><div class="splash-name">Rote Fäden</div><div class="splash-rule"></div></div>
+  </div>
 
   <!-- ===== Навигация ===== -->
   <nav class="nav">
@@ -1307,7 +1522,13 @@ footer {
         <a href="#roles">Роли</a>
         <a href="#staff">Админы</a>
       </div>
-      <button class="nav-toggle" id="navToggle" aria-label="Меню" aria-expanded="false">☰</button>
+      <div class="nav-actions">
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Переключить тему: CCG" title="Сейчас: Гули · нажми для смены">
+          <span class="theme-toggle-icon" id="themeIcon" aria-hidden="true">◉</span>
+          <span class="theme-toggle-label" id="themeLabel">Гули</span>
+        </button>
+        <button class="nav-toggle" id="navToggle" aria-label="Меню" aria-expanded="false">☰</button>
+      </div>
     </div>
   </nav>
 
@@ -1400,7 +1621,7 @@ footer {
   <section id="staff">
     <div class="container">
       <h2 class="section-title reveal">Администрация</h2>
-      <p class="section-sub reveal">Если что-то случилось, пиши любому из них. Нажми на ник, чтобы скопировать его.</p>
+      <p class="section-sub reveal">Если что-то случилось, пиши любому из них. Нажми на ник, чтобы скопировать его — один из них хранит секрет.</p>
 
       <div class="staff" id="staffList"></div>
 
@@ -1629,7 +1850,7 @@ const ROLES = [
   ["Аято Киришима", "taken"],
   ["Ризе Камиширо", "staff"],
   ["Хинами Фуегучи", "taken"],
-  ["Арата Киришима", "reserved"],
+  ["Арата Киришима", "taken"],
   ["Йошимура (Кудзен)", "staff"],
   ["Это Йошимура", "taken"],
   ["Ренджи Йомо", "taken"],
@@ -1640,9 +1861,9 @@ const ROLES = [
   ["Нишики Нишио", "taken"],
   ["Кими Нишио", "taken"],
   ["Шу Цукияма", "staff"],
-  ["Канае Фон Розевальд", "free"],
+  ["Канае Фон Розевальд", "taken"],
   ["Курона Ясихуса", "taken"],
-  ["Наширо Ясухиса", "free"],
+  ["Наширо Ясухиса", "taken"],
   ["Котаро Амон", "taken"],
   ["Арима Кишо", "taken"],
   ["Джузо Сузуя", "taken"],
@@ -1667,7 +1888,7 @@ const ROLES = [
   ["Цунейоши Вашу", "free"],
   ["Таиши Фура", "free"],
   ["Сайко Йонебаяши", "taken"],
-  ["Куки Урие", "free"],
+  ["Куки Урие", "taken"],
   ["Тоору Мицуки", "taken"],
   ["Хаджиме Хазуки", "free"],
   ["Кийоко Аура", "taken"],
@@ -1737,7 +1958,7 @@ const STAFF = [
     rank: 1, title: "Младшие Модераторы", note: "Испытательный срок",
     people: [
       { name: "Хайсе Сасаки", tag: "@Goofikills" },
-      { name: "Йошимура Кудзен", tag: "" },
+      { name: "Йошимура Кудзен", tag: "@Short_player" },
     ],
     duties: [
       "Вливать Нью.",
@@ -1767,13 +1988,11 @@ const STAFF_NOTES = [
   "Каждая должность важна и несёт ответственность.",
 ];
 
-// Пасхалка: сколько раз нужно нажать на карточку человека с этим ником
-const EASTER_EGG = {
-  tag: "@ronifrag",
-  clicks: 5,
-  title: "Пасхалка найдена 😎",
-  text: "Векрорника 676767 сама такая",
-};
+// Пасхалки: нажми пять раз по аватарке указанного человека.
+const EASTER_EGGS = [
+  { id: "owner", tag: "@ronifrag", clicks: 5, title: "Пасхалка найдена 😎", text: "Векрорника 676767 сама такая" },
+  { id: "tsukiyama", tag: "@hollow_grim", clicks: 5, title: "Пасхалка найдена 😎", text: "Цукияма шлюха флуда" },
+];
 
 /* ==========================================================
    Логика сайта. Тексты и данные лежат в data.js,
@@ -1936,10 +2155,11 @@ $("staffList").innerHTML = STAFF.map((g) => {
           ? `<img src="${p.avatar}" alt="" data-letter="${letter}"
                   onerror="this.replaceWith(document.createTextNode(this.dataset.letter))">`
           : (p.icon || letter);
+        const egg = EASTER_EGGS.find((item) => item.tag === p.tag);
 
         return `
           <div class="person ${p.tag ? "copyable" : ""}" data-tag="${p.tag || ""}">
-            <div class="avatar">${avatar}</div>
+            <button class="avatar egg-trigger" type="button" data-egg="${egg ? egg.id : ""}" aria-label="Аватар: ${p.name}">${avatar}</button>
             <div><b>${p.name}</b>${p.tag ? `<span>${p.tag}</span>` : ""}</div>
           </div>`;
       }).join("")
@@ -2151,28 +2371,32 @@ async function copyText(text) {
   }
 }
 
-let eggClicks = 0;
-
-$("eggTitle").textContent = EASTER_EGG.title;
-$("eggText").textContent = EASTER_EGG.text;
+const eggClicks = Object.fromEntries(EASTER_EGGS.map((egg) => [egg.id, 0]));
 
 $("staffList").addEventListener("click", async (e) => {
   const person = e.target.closest(".person");
   if (!person) return;
 
-  const tag = person.dataset.tag;
+  const avatarTrigger = e.target.closest(".egg-trigger");
+  const eggId = avatarTrigger?.dataset.egg;
+  if (eggId) {
+    const egg = EASTER_EGGS.find((item) => item.id === eggId);
+    if (!egg) return;
+    eggClicks[egg.id]++;
+    if (eggClicks[egg.id] >= egg.clicks) {
+      $("eggTitle").textContent = egg.title;
+      $("eggText").textContent = egg.text;
+      $("egg").classList.add("show");
+      playEasterSound();
+      eggClicks[egg.id] = 0;
+    }
+    return; // аватар запускает пасхалку, а не копирование ника
+  }
 
+  const tag = person.dataset.tag;
   if (tag) {
     const ok = await copyText(tag);
     showToast(ok ? `Ник ${tag} скопирован` : `Ник: ${tag}`);
-  }
-
-  if (tag && tag === EASTER_EGG.tag) {
-    eggClicks++;
-    if (eggClicks >= EASTER_EGG.clicks) {
-      $("egg").classList.add("show");
-      eggClicks = 0;
-    }
   }
 });
 
@@ -2181,7 +2405,74 @@ $("egg").addEventListener("click", (e) => {
   if (e.target.id === "egg") $("egg").classList.remove("show");
 });
 
-  </script>
-</body>
-</html>
 
+
+
+// Переключатель CCG / Гули с сохранением выбранной темы.
+const themeToggle = document.getElementById("themeToggle");
+const themeIcon = document.getElementById("themeIcon");
+const themeLabel = document.getElementById("themeLabel");
+const themeMeta = document.querySelector('meta[name="theme-color"]');
+function applyTheme(theme) {
+  const ccg = theme === "ccg";
+  document.documentElement.dataset.theme = ccg ? "ccg" : "ghoul";
+  themeIcon.textContent = ccg ? "⌖" : "◉";
+  themeLabel.textContent = ccg ? "CCG" : "Гули";
+  themeToggle.setAttribute("aria-label", `Переключить тему: ${ccg ? "Гули" : "CCG"}`);
+  themeToggle.title = `Сейчас: ${ccg ? "CCG" : "Гули"} · нажми для смены`;
+  if (themeMeta) themeMeta.content = ccg ? "#f2f4f5" : "#0a0a0d";
+  try { localStorage.setItem("rote-faden-theme", ccg ? "ccg" : "ghoul"); } catch (_) {}
+}
+applyTheme(document.documentElement.dataset.theme === "ccg" ? "ccg" : "ghoul");
+themeToggle.addEventListener("click", () => {
+  applyTheme(document.documentElement.dataset.theme === "ccg" ? "ghoul" : "ccg");
+});
+
+// Звуковые эффекты (синтезируются в браузере; внешние файлы не нужны)
+let soundContext;
+function playTone({ frequency = 520, duration = .075, type = "sine", volume = .035, endFrequency } = {}) {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    soundContext ||= new AudioCtx();
+    if (soundContext.state === "suspended") soundContext.resume();
+    const now = soundContext.currentTime;
+    const osc = soundContext.createOscillator();
+    const gain = soundContext.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(frequency, now);
+    if (endFrequency) osc.frequency.exponentialRampToValueAtTime(endFrequency, now + duration);
+    gain.gain.setValueAtTime(.0001, now);
+    gain.gain.exponentialRampToValueAtTime(volume, now + .012);
+    gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
+    osc.connect(gain); gain.connect(soundContext.destination);
+    osc.start(now); osc.stop(now + duration + .015);
+  } catch (_) { /* звук необязателен: интерфейс работает и без Web Audio */ }
+}
+function playButtonSound() { playTone({ frequency: 620, endFrequency: 430, duration: .055, volume: .025 }); }
+function playRulesSound() { playTone({ frequency: 360, endFrequency: 540, duration: .14, type: "triangle", volume: .035 }); }
+function playEasterSound() {
+  [[660, 0], [880, .09], [1175, .18]].forEach(([frequency, delay]) =>
+    setTimeout(() => playTone({ frequency, endFrequency: frequency * .96, duration: .18, type: "sine", volume: .045 }), delay * 1000));
+}
+document.addEventListener("click", (event) => {
+  const control = event.target.closest("button, .btn, .nav-links a");
+  if (control) playButtonSound();
+  const rulesLink = event.target.closest('a[href="#rules"]');
+  if (rulesLink) playRulesSound();
+}, true);
+document.getElementById("rulesList").addEventListener("toggle", (event) => {
+  if (event.target.matches("details.rule") && event.target.open) playRulesSound();
+}, true);
+
+// Короткая заставка при запуске: держим на экране около 1.4 секунды
+const splash = document.getElementById("splash");
+window.addEventListener("load", () => {
+  setTimeout(() => splash.classList.add("dismissed"), 1450);
+  setTimeout(() => splash.remove(), 2300);
+});
+setTimeout(() => splash.classList.add("dismissed"), 1900); // fallback для медленно загружающихся файлов
+
+  </script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a545eec48f97350c',t:'MTc5MzY1MTc5OQ=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a545eec48f97350c',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
