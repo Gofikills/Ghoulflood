@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
@@ -9,1158 +9,1289 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☕</text></svg>">
 
   <style>
-    /* ==========================================================
-       Базовые настройки
-       ========================================================== */
-
-    :root {
-      --bg: #0a0a0d;
-      --bg-soft: #121217;
-      --card: rgba(255, 255, 255, 0.04);
-      --card-border: rgba(255, 255, 255, 0.09);
-      --red: #d00f25;
-      --red-bright: #ff2d46;
-      --text: #ececf1;
-      --muted: #9a9aa8;
-      --radius: 18px;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
-      scroll-padding-top: 76px;
-    }
-
-    body {
-      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-      line-height: 1.6;
-      color: var(--text);
-      background: var(--bg);
-      overflow-x: hidden;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    .container {
-      width: min(1040px, 100% - 40px);
-      margin-inline: auto;
-    }
-
-    section {
-      padding: 80px 0;
-    }
-
-    .section-title {
-      margin-bottom: 8px;
-      font-size: clamp(1.7rem, 5vw, 2.4rem);
-      letter-spacing: 0.5px;
-    }
-
-    .section-title::after {
-      content: "";
-      display: block;
-      width: 56px;
-      height: 3px;
-      margin-top: 10px;
-      background: var(--red);
-      border-radius: 3px;
-    }
-
-    .section-sub {
-      margin-bottom: 36px;
-      color: var(--muted);
-    }
-
-    /* ==========================================================
-       Кнопки
-       ========================================================== */
-
-    .btn {
-      display: inline-block;
-      padding: 14px 30px;
-      font-size: 1rem;
-      font-weight: 700;
-      color: #fff;
-      background: var(--red);
-      border: 2px solid var(--red);
-      border-radius: 50px;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
-    }
-
-    .btn:hover {
-      background: var(--red-bright);
-      border-color: var(--red-bright);
-      box-shadow: 0 0 28px rgba(255, 45, 70, 0.5);
-      transform: translateY(-2px);
-    }
-
-    .btn-outline {
-      background: transparent;
-      border-color: rgba(255, 255, 255, 0.25);
-    }
-
-    .btn-outline:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: #fff;
-      box-shadow: none;
-    }
-
-    /* ==========================================================
-       Навигация
-       ========================================================== */
-
-    .nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 50;
-      background: rgba(10, 10, 13, 0.78);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--card-border);
-    }
-
-    .nav-inner {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      height: 64px;
-    }
-
-    .logo {
-      font-weight: 800;
-      letter-spacing: 1px;
-      white-space: nowrap;
-    }
-
-    .logo span {
-      color: var(--red-bright);
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 22px;
-      font-size: 0.95rem;
-      color: var(--muted);
-    }
-
-    .nav-links a:hover {
-      color: #fff;
-    }
-
-    .nav-toggle {
-      display: none;
-      padding: 6px 10px;
-      font-size: 1.5rem;
-      line-height: 1;
-      color: var(--text);
-      background: none;
-      border: none;
-      cursor: pointer;
-    }
-
-    /* ==========================================================
-       Главный экран
-       ========================================================== */
-
-    .hero {
-      position: relative;
-      display: flex;
-      align-items: center;
-      min-height: 100vh;
-      min-height: 100svh;
-      padding: 110px 0 70px;
-      text-align: center;
-      overflow: hidden;
-      background:
-        radial-gradient(ellipse at 50% 0%, rgba(208, 15, 37, 0.28), transparent 60%),
-        var(--bg);
-    }
-
-    /* Большие иероглифы «гуль» на заднем плане */
-    .hero::before {
-      content: "喰種";
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      font-size: clamp(9rem, 38vw, 26rem);
-      font-weight: 900;
-      color: rgba(208, 15, 37, 0.07);
-      white-space: nowrap;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-    }
-
-    .embers {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-    }
-
-    .ember {
-      position: absolute;
-      bottom: -20px;
-      width: 4px;
-      height: 4px;
-      background: var(--red-bright);
-      border-radius: 50%;
-      box-shadow: 0 0 10px var(--red-bright);
-      opacity: 0;
-      animation: ember-rise linear infinite;
-    }
-
-    @keyframes ember-rise {
-      0%   { opacity: 0; transform: translateY(0) translateX(0); }
-      15%  { opacity: 0.9; }
-      100% { opacity: 0; transform: translateY(-105vh) translateX(40px); }
-    }
-
-    .hero-content {
-      position: relative;
-      z-index: 2;
-    }
-
-    .badge {
-      display: inline-block;
-      margin-bottom: 22px;
-      padding: 6px 16px;
-      font-size: 0.85rem;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--red-bright);
-      border: 1px solid rgba(255, 45, 70, 0.4);
-      border-radius: 50px;
-      background: rgba(208, 15, 37, 0.1);
-    }
-
-    .hero h1 {
-      margin-bottom: 20px;
-      font-size: clamp(2.3rem, 8vw, 4.6rem);
-      line-height: 1.1;
-      text-shadow: 0 0 40px rgba(208, 15, 37, 0.45);
-    }
-
-    .hero h1 em {
-      font-style: normal;
-      color: var(--red-bright);
-    }
-
-    .hero p {
-      max-width: 560px;
-      margin: 0 auto 34px;
-      font-size: 1.1rem;
-      color: var(--muted);
-    }
-
-    .hero-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 14px;
-    }
-
-    /* ==========================================================
-       О нас
-       ========================================================== */
-
-    .features {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 18px;
-    }
-
-    .feature {
-      padding: 26px 22px;
-      background: var(--card);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      transition: transform 0.25s, border-color 0.25s;
-    }
-
-    .feature:hover {
-      transform: translateY(-5px);
-      border-color: rgba(255, 45, 70, 0.5);
-    }
-
-    .feature-icon {
-      margin-bottom: 12px;
-      font-size: 2rem;
-    }
-
-    .feature h3 {
-      margin-bottom: 6px;
-      font-size: 1.1rem;
-    }
-
-    .feature p {
-      font-size: 0.95rem;
-      color: var(--muted);
-    }
-
-    /* ==========================================================
-       Правила
-       ========================================================== */
-
-    #rules {
-      background: var(--bg-soft);
-    }
-
-    .rules-list {
-      display: grid;
-      gap: 12px;
-      counter-reset: group;
-    }
-
-    .rule {
-      counter-increment: group;
-      background: var(--card);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      transition: border-color 0.25s;
-    }
-
-    .rule[open] {
-      border-color: rgba(255, 45, 70, 0.5);
-    }
-
-    .rule summary {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 18px 20px;
-      font-weight: 600;
-      list-style: none;
-      cursor: pointer;
-    }
-
-    .rule summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .rule summary::before {
-      content: counter(group);
-      flex: 0 0 34px;
-      height: 34px;
-      line-height: 34px;
-      text-align: center;
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: #fff;
-      background: var(--red);
-      border-radius: 50%;
-    }
-
-    .rule summary::after {
-      content: "+";
-      margin-left: auto;
-      font-size: 1.5rem;
-      color: var(--muted);
-      transition: transform 0.25s;
-    }
-
-    .rule[open] summary::after {
-      transform: rotate(45deg);
-    }
-
-    .rule-body {
-      padding: 0 20px 22px 68px;
-    }
-
-    /* Пункты внутри раздела */
-
-    .rule-items {
-      display: grid;
-      gap: 14px;
-      list-style: none;
-      counter-reset: item;
-    }
-
-    .rule-items > li {
-      counter-increment: item;
-      color: var(--text);
-    }
-
-    .rule-items > li::before {
-      content: "#" counter(item) "  ";
-      font-weight: 800;
-      color: var(--red-bright);
-    }
-
-    .rule-items ul {
-      display: grid;
-      gap: 4px;
-      margin: 6px 0 0 4px;
-      padding-left: 20px;
-      font-size: 0.95rem;
-      color: var(--muted);
-    }
-
-    .rule-note {
-      margin-top: 8px;
-      padding: 10px 14px;
-      font-size: 0.92rem;
-      color: var(--muted);
-      background: rgba(208, 15, 37, 0.08);
-      border-left: 3px solid var(--red);
-      border-radius: 0 10px 10px 0;
-    }
-
-    /* Наказания */
-
-    .penalty {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px;
-      margin-top: 20px;
-      padding-top: 16px;
-      border-top: 1px solid var(--card-border);
-    }
-
-    .penalty-label {
-      margin-right: 4px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .penalty-step {
-      padding: 5px 14px;
-      font-size: 0.88rem;
-      background: rgba(255, 45, 70, 0.1);
-      border: 1px solid rgba(255, 45, 70, 0.35);
-      border-radius: 50px;
-    }
-
-    .penalty-arrow {
-      color: var(--muted);
-    }
-
-    .motto {
-      margin-top: 14px;
-      font-style: italic;
-      color: var(--red-bright);
-    }
-
-    /* ==========================================================
-       Чистка и норма
-       ========================================================== */
-
-    .when-card {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      padding: 24px;
-      background: var(--card);
-      border: 1px solid rgba(255, 45, 70, 0.4);
-      border-radius: var(--radius);
-      box-shadow: 0 0 30px rgba(208, 15, 37, 0.12);
-    }
-
-    .when-icon {
-      font-size: 2.6rem;
-    }
-
-    .when-card b {
-      display: block;
-      font-size: 1.3rem;
-    }
-
-    .when-card span {
-      font-size: 1.05rem;
-      color: var(--red-bright);
-      font-weight: 700;
-    }
-
-    .sub-title {
-      margin: 38px 0 16px;
-      font-size: 1.3rem;
-    }
-
-    .norms {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-    }
-
-    .norm-card {
-      padding: 24px 22px;
-      text-align: center;
-      background: var(--card);
-      border: 1px solid var(--card-border);
-      border-top: 3px solid var(--red);
-      border-radius: var(--radius);
-    }
-
-    .norm-who {
-      font-weight: 700;
-    }
-
-    .norm-who small {
-      display: block;
-      font-size: 0.82rem;
-      font-weight: 400;
-      color: var(--muted);
-    }
-
-    .norm-num {
-      margin: 10px 0 4px;
-      font-size: 3rem;
-      font-weight: 800;
-      line-height: 1;
-      color: var(--red-bright);
-    }
-
-    .norm-num small {
-      display: block;
-      margin-top: 6px;
-      font-size: 0.85rem;
-      font-weight: 400;
-      color: var(--muted);
-    }
-
-    .norm-pen {
-      margin-top: 14px;
-      padding-top: 14px;
-      font-size: 0.9rem;
-      color: var(--muted);
-      border-top: 1px solid var(--card-border);
-    }
-
-    .norm-pen b {
-      color: var(--text);
-    }
-
-    .shortfalls {
-      display: grid;
-      gap: 10px;
-    }
-
-    .shortfall {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 8px 14px;
-      padding: 16px 20px;
-      background: var(--card);
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
-    }
-
-    .shortfall .what {
-      font-weight: 700;
-    }
-
-    .shortfall .what small {
-      font-weight: 400;
-      color: var(--muted);
-    }
-
-    .shortfall .arrow-sign {
-      color: var(--muted);
-    }
-
-    .callouts {
-      display: grid;
-      gap: 12px;
-      margin-top: 30px;
-    }
-
-    .callout {
-      display: flex;
-      gap: 14px;
-      padding: 16px 20px;
-      background: rgba(208, 15, 37, 0.08);
-      border: 1px solid rgba(255, 45, 70, 0.35);
-      border-radius: 14px;
-    }
-
-    .callout-icon {
-      font-size: 1.4rem;
-      line-height: 1.4;
-    }
-
-    .callout p {
-      color: var(--text);
-    }
-
-    /* ==========================================================
-       Интерактивы
-       ========================================================== */
-
-    .inter-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-    }
-
-    .inter-card {
-      display: flex;
-      gap: 16px;
-      padding: 24px;
-      background: var(--card);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-    }
-
-    .inter-card.wide {
-      grid-column: 1 / -1;
-      flex-direction: column;
-      border-color: rgba(255, 45, 70, 0.4);
-      box-shadow: 0 0 30px rgba(208, 15, 37, 0.12);
-    }
-
-    .inter-row {
-      display: flex;
-      gap: 16px;
-    }
-
-    .inter-icon {
-      font-size: 2rem;
-      line-height: 1.2;
-    }
-
-    .inter-card p {
-      font-size: 1.02rem;
-    }
-
-    .week {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 8px;
-      margin-top: 4px;
-    }
-
-    .day {
-      padding: 12px 0;
-      text-align: center;
-      font-size: 0.9rem;
-      color: var(--muted);
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-    }
-
-    .day.on {
-      font-weight: 700;
-      color: #fff;
-      background: rgba(208, 15, 37, 0.22);
-      border-color: var(--red-bright);
-    }
-
-    .day small {
-      display: block;
-      font-size: 0.65rem;
-      color: var(--red-bright);
-    }
-
-    /* ==========================================================
-       Роли
-       ========================================================== */
-
-    .role-tools {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 22px;
-    }
-
-    .filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .filter {
-      padding: 8px 16px;
-      font: inherit;
-      font-size: 0.9rem;
-      color: var(--text);
-      background: var(--card);
-      border: 1px solid var(--card-border);
-      border-radius: 50px;
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
-    }
-
-    .filter:hover {
-      border-color: rgba(255, 255, 255, 0.35);
-    }
-
-    .filter.active {
-      background: var(--red);
-      border-color: var(--red);
-    }
-
-    .filter small {
-      margin-left: 4px;
-      opacity: 0.7;
-    }
-
-    #roleSearch {
-      flex: 1 1 220px;
-      min-width: 0;
-      padding: 10px 18px;
-      font: inherit;
-      font-size: 0.95rem;
-      color: var(--text);
-      background: var(--card);
-      border: 1px solid var(--card-border);
-      border-radius: 50px;
-      outline: none;
-    }
-
-    #roleSearch:focus {
-      border-color: var(--red-bright);
-    }
-
-    .role-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-      gap: 10px;
-    }
-
-    .role-card {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      padding: 14px 16px;
-      background: var(--card);
-      border: 1px solid var(--card-border);
-      border-left: 3px solid var(--st);
-      border-radius: 14px;
-    }
-
-    .role-card b {
-      font-size: 0.98rem;
-      line-height: 1.3;
-    }
-
-    .role-card span {
-      font-size: 0.82rem;
-      color: var(--st);
-    }
-
-    .st-taken    { --st: #ff5468; }
-    .st-free     { --st: #7ee787; }
-    .st-reserved { --st: #7cc4ff; }
-    .st-staff    { --st: #c9a7ff; }
-
-    .role-empty {
-      padding: 30px 0;
-      text-align: center;
-      color: var(--muted);
-    }
-
-    /* ==========================================================
-       Администрация
-       ========================================================== */
-
-    #interactives,
-    #staff {
-      background: var(--bg-soft);
-    }
-
-    .staff {
-      display: grid;
-      gap: 16px;
-    }
-
-    .rank-card {
-      display: grid;
-      grid-template-columns: 76px 1fr;
-      gap: 20px;
-      padding: 22px;
-      background: var(--card);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      transition: border-color 0.25s;
-    }
-
-    .rank-card:hover {
-      border-color: rgba(255, 45, 70, 0.45);
-    }
-
-    .rank-card.vacant {
-      background: transparent;
-      border-style: dashed;
-    }
-
-    /* Значок ранга слева */
-
-    .rank-badge {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      align-self: start;
-      height: 76px;
-      border-radius: 18px;
-      border: 2px solid var(--tier);
-      color: var(--tier);
-      background: rgba(255, 255, 255, 0.03);
-      box-shadow: 0 0 22px color-mix(in srgb, var(--tier) 35%, transparent);
-    }
-
-    .rank-badge small {
-      font-size: 0.6rem;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      opacity: 0.8;
-    }
-
-    .rank-badge b {
-      font-size: 2rem;
-      line-height: 1;
-    }
-
-    .tier-5 { --tier: #ffd166; }
-    .tier-4 { --tier: #ff2d46; }
-    .tier-3 { --tier: #ff8a3d; }
-    .tier-2 { --tier: #7cc4ff; }
-    .tier-1 { --tier: #9be58f; }
-
-    .rank-title {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
-    .rank-title h3 {
-      font-size: 1.25rem;
-    }
-
-    .tag {
-      padding: 3px 12px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      color: var(--tier);
-      background: color-mix(in srgb, var(--tier) 14%, transparent);
-      border-radius: 50px;
-    }
-
-    /* Люди */
-
-    .people {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .person {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 8px 18px 8px 8px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 50px;
-    }
-
-    .person .avatar {
-      display: grid;
-      place-items: center;
-      width: 42px;
-      height: 42px;
-      font-weight: 800;
-      color: #fff;
-      background: linear-gradient(135deg, var(--red), #5a0612);
-      border-radius: 50%;
-    }
-
-    .person b {
-      display: block;
-      line-height: 1.2;
-    }
-
-    .person span {
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-
-    .empty {
-      font-size: 0.95rem;
-      font-style: italic;
-      color: var(--muted);
-    }
-
-    /* Обязанности и запреты */
-
-    .duties {
-      margin-top: 14px;
-    }
-
-    .duties summary {
-      display: inline-block;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--tier);
-      cursor: pointer;
-      list-style: none;
-    }
-
-    .duties summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .duties summary::after {
-      content: " ▾";
-    }
-
-    .duties[open] summary::after {
-      content: " ▴";
-    }
-
-    .duties h4 {
-      margin: 14px 0 6px;
-      font-size: 0.95rem;
-    }
-
-    .duties ul {
-      display: grid;
-      gap: 6px;
-      padding-left: 20px;
-      font-size: 0.93rem;
-      color: var(--muted);
-    }
-
-    .duties .bans li::marker {
-      content: "⛔  ";
-    }
-
-    .duties .tasks li::marker {
-      content: "❕  ";
-    }
-
-    /* Важное внизу */
-
-    .probation {
-      margin-top: 26px;
-      padding: 24px;
-      background: var(--card);
-      border: 1px solid rgba(124, 196, 255, 0.35);
-      border-radius: var(--radius);
-    }
-
-    .probation-head {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 10px 14px;
-      margin-bottom: 14px;
-    }
-
-    .probation-head h3 {
-      font-size: 1.2rem;
-    }
-
-    .duration {
-      padding: 4px 14px;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: #7cc4ff;
-      background: rgba(124, 196, 255, 0.12);
-      border-radius: 50px;
-    }
-
-    .probation h4 {
-      margin: 18px 0 8px;
-      font-size: 0.98rem;
-    }
-
-    .probation .checks {
-      display: grid;
-      gap: 8px;
-      list-style: none;
-      color: var(--muted);
-    }
-
-    .probation .checks li::before {
-      content: "✔";
-      margin-right: 10px;
-      color: #7ee787;
-    }
-
-    .admin-bans {
-      margin-top: 26px;
-      padding: 22px 24px;
-      background: rgba(208, 15, 37, 0.1);
-      border: 1px solid rgba(255, 45, 70, 0.5);
-      border-radius: var(--radius);
-    }
-
-    .admin-bans h3 {
-      margin-bottom: 12px;
-    }
-
-    .admin-bans ul {
-      display: grid;
-      gap: 8px;
-      padding-left: 22px;
-      color: var(--muted);
-    }
-
-    .admin-bans li::marker {
-      content: "⛔  ";
-    }
-
-    .remember {
-      margin-top: 26px;
-      padding: 22px 24px;
-      background: rgba(208, 15, 37, 0.08);
-      border: 1px solid rgba(255, 45, 70, 0.35);
-      border-radius: var(--radius);
-    }
-
-    .remember h3 {
-      margin-bottom: 10px;
-    }
-
-    .remember ul {
-      display: grid;
-      gap: 8px;
-      padding-left: 20px;
-      color: var(--muted);
-    }
-
-    /* ==========================================================
-       Подвал
-       ========================================================== */
-
-    footer {
-      padding: 28px 0;
-      text-align: center;
-      font-size: 0.85rem;
-      color: var(--muted);
-      border-top: 1px solid var(--card-border);
-    }
-
-    /* ==========================================================
-       Появление блоков при прокрутке
-       ========================================================== */
-
-    .reveal {
-      opacity: 0;
-      transform: translateY(26px);
-      transition: opacity 0.7s ease, transform 0.7s ease;
-    }
-
-    .reveal.visible {
-      opacity: 1;
-      transform: none;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-      .ember { display: none; }
-      .reveal { opacity: 1; transform: none; transition: none; }
-    }
-
-    /* ==========================================================
-       Телефоны
-       ========================================================== */
-
-    @media (max-width: 640px) {
-      section { padding: 60px 0; }
-      .role-grid { grid-template-columns: repeat(2, 1fr); }
-      .when-card { padding: 20px; gap: 14px; }
-      .logo { font-size: 0.95rem; letter-spacing: 0; }
-
-      /* Меню-«бургер» */
-      .nav-toggle { display: block; }
-
-      .nav-links {
-        position: absolute;
-        top: 64px;
-        left: 0;
-        right: 0;
-        display: none;
-        flex-direction: column;
-        gap: 0;
-        padding: 6px 20px 14px;
-        font-size: 1rem;
-        background: rgba(10, 10, 13, 0.97);
-        border-bottom: 1px solid var(--card-border);
-      }
-
-      .nav-links.open { display: flex; }
-
-      .nav-links a {
-        padding: 13px 0;
-        border-bottom: 1px solid var(--card-border);
-      }
-
-      .nav-links a:last-child { border-bottom: none; }
-
-      .week { gap: 4px; }
-      .inter-grid { grid-template-columns: 1fr; }
-      .inter-card { padding: 20px; }
-      .day { font-size: 0.8rem; padding: 10px 0; }
-      .probation { padding: 20px; }
-      .rule-body { padding-left: 20px; }
-      .btn { padding: 13px 24px; }
-      .rank-card { grid-template-columns: 58px 1fr; gap: 14px; padding: 18px; }
-      .rank-badge { height: 58px; border-radius: 14px; }
-      .rank-badge small { display: none; }
-      .rank-badge b { font-size: 1.5rem; }
-    }
-
-    /* Пасхалка: 5 нажатий на ник владельца */
-    .person {
-      user-select: none;
-      -webkit-user-select: none;
-    }
-
-    .egg {
-      position: fixed;
-      inset: 0;
-      z-index: 200;
-      display: none;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      background: rgba(0, 0, 0, 0.75);
-    }
-
-    .egg.show {
-      display: flex;
-    }
-
-    .egg-box {
-      width: min(420px, 100%);
-      padding: 28px;
-      text-align: center;
-      background: #15151c;
-      border: 1px solid var(--red-bright);
-      border-radius: 22px;
-      box-shadow: 0 0 40px rgba(208, 15, 37, 0.4);
-    }
-
-    .egg-box h3 {
-      margin-bottom: 10px;
-    }
-
-    .egg-box p {
-      color: var(--muted);
-    }
+/* ==========================================================
+   Базовые настройки
+   ========================================================== */
+
+:root {
+  --bg: #0a0a0d;
+  --bg-soft: #121217;
+  --card: rgba(255, 255, 255, 0.04);
+  --card-border: rgba(255, 255, 255, 0.09);
+  --red: #d00f25;
+  --red-bright: #ff2d46;
+  --text: #ececf1;
+  --muted: #9a9aa8;
+  --radius: 18px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 76px;
+}
+
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--bg);
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.container {
+  width: min(1040px, 100% - 40px);
+  margin-inline: auto;
+}
+
+section {
+  padding: 80px 0;
+}
+
+.section-title {
+  margin-bottom: 8px;
+  font-size: clamp(1.7rem, 5vw, 2.4rem);
+  letter-spacing: 0.5px;
+}
+
+.section-title::after {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 3px;
+  margin-top: 10px;
+  background: var(--red);
+  border-radius: 3px;
+}
+
+.section-sub {
+  margin-bottom: 36px;
+  color: var(--muted);
+}
+
+/* ==========================================================
+   Кнопки
+   ========================================================== */
+
+.btn {
+  display: inline-block;
+  padding: 14px 30px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--red);
+  border: 2px solid var(--red);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.btn:hover {
+  background: var(--red-bright);
+  border-color: var(--red-bright);
+  box-shadow: 0 0 28px rgba(255, 45, 70, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-outline {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #fff;
+  box-shadow: none;
+}
+
+/* ==========================================================
+   Навигация
+   ========================================================== */
+
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(10, 10, 13, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--card-border);
+}
+
+.nav-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  height: 64px;
+}
+
+.logo {
+  font-weight: 800;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.logo span {
+  color: var(--red-bright);
+}
+
+.nav-links {
+  display: flex;
+  gap: 22px;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.nav-links a:hover {
+  color: #fff;
+}
+
+.nav-toggle {
+  display: none;
+  padding: 6px 10px;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--text);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* ==========================================================
+   Главный экран
+   ========================================================== */
+
+.hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 110px 0 70px;
+  text-align: center;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(208, 15, 37, 0.28), transparent 60%),
+    var(--bg);
+}
+
+/* Большие иероглифы «гуль» на заднем плане */
+.hero::before {
+  content: "喰種";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: clamp(9rem, 38vw, 26rem);
+  font-weight: 900;
+  color: rgba(208, 15, 37, 0.07);
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.embers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ember {
+  position: absolute;
+  bottom: -20px;
+  width: 4px;
+  height: 4px;
+  background: var(--red-bright);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--red-bright);
+  opacity: 0;
+  animation: ember-rise linear infinite;
+}
+
+@keyframes ember-rise {
+  0%   { opacity: 0; transform: translateY(0) translateX(0); }
+  15%  { opacity: 0.9; }
+  100% { opacity: 0; transform: translateY(-105vh) translateX(40px); }
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+.badge {
+  display: inline-block;
+  margin-bottom: 22px;
+  padding: 6px 16px;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--red-bright);
+  border: 1px solid rgba(255, 45, 70, 0.4);
+  border-radius: 50px;
+  background: rgba(208, 15, 37, 0.1);
+}
+
+.hero h1 {
+  margin-bottom: 20px;
+  font-size: clamp(2.3rem, 8vw, 4.6rem);
+  line-height: 1.1;
+  text-shadow: 0 0 40px rgba(208, 15, 37, 0.45);
+}
+
+.hero h1 em {
+  font-style: normal;
+  color: var(--red-bright);
+}
+
+.hero p {
+  max-width: 560px;
+  margin: 0 auto 34px;
+  font-size: 1.1rem;
+  color: var(--muted);
+}
+
+.hero-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+
+/* ==========================================================
+   О нас
+   ========================================================== */
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.feature {
+  padding: 26px 22px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  transition: transform 0.25s, border-color 0.25s;
+}
+
+.feature:hover {
+  transform: translateY(-5px);
+  border-color: rgba(255, 45, 70, 0.5);
+}
+
+.feature-icon {
+  margin-bottom: 12px;
+  font-size: 2rem;
+}
+
+.feature h3 {
+  margin-bottom: 6px;
+  font-size: 1.1rem;
+}
+
+.feature p {
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+/* ==========================================================
+   Правила
+   ========================================================== */
+
+#rules {
+  background: var(--bg-soft);
+}
+
+.rules-list {
+  display: grid;
+  gap: 12px;
+  counter-reset: group;
+}
+
+.rule {
+  counter-increment: group;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  transition: border-color 0.25s;
+}
+
+.rule[open] {
+  border-color: rgba(255, 45, 70, 0.5);
+}
+
+.rule summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+}
+
+.rule summary::-webkit-details-marker {
+  display: none;
+}
+
+.rule summary::before {
+  content: counter(group);
+  flex: 0 0 34px;
+  height: 34px;
+  line-height: 34px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #fff;
+  background: var(--red);
+  border-radius: 50%;
+}
+
+.rule summary::after {
+  content: "+";
+  margin-left: auto;
+  font-size: 1.5rem;
+  color: var(--muted);
+  transition: transform 0.25s;
+}
+
+.rule[open] summary::after {
+  transform: rotate(45deg);
+}
+
+.rule-body {
+  padding: 0 20px 22px 68px;
+}
+
+/* Пункты внутри раздела */
+
+.rule-items {
+  display: grid;
+  gap: 14px;
+  list-style: none;
+  counter-reset: item;
+}
+
+.rule-items > li {
+  counter-increment: item;
+  color: var(--text);
+}
+
+.rule-items > li::before {
+  content: "#" counter(item) "  ";
+  font-weight: 800;
+  color: var(--red-bright);
+}
+
+.rule-items ul {
+  display: grid;
+  gap: 4px;
+  margin: 6px 0 0 4px;
+  padding-left: 20px;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.rule-note {
+  margin-top: 8px;
+  padding: 10px 14px;
+  font-size: 0.92rem;
+  color: var(--muted);
+  background: rgba(208, 15, 37, 0.08);
+  border-left: 3px solid var(--red);
+  border-radius: 0 10px 10px 0;
+}
+
+/* Наказания */
+
+.penalty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--card-border);
+}
+
+.penalty-label {
+  margin-right: 4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.penalty-step {
+  padding: 5px 14px;
+  font-size: 0.88rem;
+  background: rgba(255, 45, 70, 0.1);
+  border: 1px solid rgba(255, 45, 70, 0.35);
+  border-radius: 50px;
+}
+
+.penalty-arrow {
+  color: var(--muted);
+}
+
+.motto {
+  margin-top: 14px;
+  font-style: italic;
+  color: var(--red-bright);
+}
+
+/* ==========================================================
+   Чистка и норма
+   ========================================================== */
+
+.when-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 24px;
+  background: var(--card);
+  border: 1px solid rgba(255, 45, 70, 0.4);
+  border-radius: var(--radius);
+  box-shadow: 0 0 30px rgba(208, 15, 37, 0.12);
+}
+
+.when-icon {
+  font-size: 2.6rem;
+}
+
+.when-card b {
+  display: block;
+  font-size: 1.3rem;
+}
+
+.when-card span {
+  font-size: 1.05rem;
+  color: var(--red-bright);
+  font-weight: 700;
+}
+
+.sub-title {
+  margin: 38px 0 16px;
+  font-size: 1.3rem;
+}
+
+.norms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.norm-card {
+  padding: 24px 22px;
+  text-align: center;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-top: 3px solid var(--red);
+  border-radius: var(--radius);
+}
+
+.norm-who {
+  font-weight: 700;
+}
+
+.norm-who small {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.norm-num {
+  margin: 10px 0 4px;
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--red-bright);
+}
+
+.norm-num small {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.norm-pen {
+  margin-top: 14px;
+  padding-top: 14px;
+  font-size: 0.9rem;
+  color: var(--muted);
+  border-top: 1px solid var(--card-border);
+}
+
+.norm-pen b {
+  color: var(--text);
+}
+
+.shortfalls {
+  display: grid;
+  gap: 10px;
+}
+
+.shortfall {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 16px 20px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+}
+
+.shortfall .what {
+  font-weight: 700;
+}
+
+.shortfall .what small {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.shortfall .arrow-sign {
+  color: var(--muted);
+}
+
+.callouts {
+  display: grid;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.callout {
+  display: flex;
+  gap: 14px;
+  padding: 16px 20px;
+  background: rgba(208, 15, 37, 0.08);
+  border: 1px solid rgba(255, 45, 70, 0.35);
+  border-radius: 14px;
+}
+
+.callout-icon {
+  font-size: 1.4rem;
+  line-height: 1.4;
+}
+
+.callout p {
+  color: var(--text);
+}
+
+/* ==========================================================
+   Интерактивы
+   ========================================================== */
+
+.inter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.inter-card {
+  display: flex;
+  gap: 16px;
+  padding: 24px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+}
+
+.inter-card.wide {
+  grid-column: 1 / -1;
+  flex-direction: column;
+  border-color: rgba(255, 45, 70, 0.4);
+  box-shadow: 0 0 30px rgba(208, 15, 37, 0.12);
+}
+
+.inter-row {
+  display: flex;
+  gap: 16px;
+}
+
+.inter-icon {
+  font-size: 2rem;
+  line-height: 1.2;
+}
+
+.inter-card p {
+  font-size: 1.02rem;
+}
+
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.day {
+  padding: 12px 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+}
+
+.day.on {
+  font-weight: 700;
+  color: #fff;
+  background: rgba(208, 15, 37, 0.22);
+  border-color: var(--red-bright);
+}
+
+.day small {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--red-bright);
+}
+
+/* ==========================================================
+   Роли
+   ========================================================== */
+
+.role-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter {
+  padding: 8px 16px;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.filter:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.filter.active {
+  background: var(--red);
+  border-color: var(--red);
+}
+
+.filter small {
+  margin-left: 4px;
+  opacity: 0.7;
+}
+
+#roleSearch {
+  flex: 1 1 220px;
+  min-width: 0;
+  padding: 10px 18px;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 50px;
+  outline: none;
+}
+
+#roleSearch:focus {
+  border-color: var(--red-bright);
+}
+
+.role-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.role-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-left: 3px solid var(--st);
+  border-radius: 14px;
+}
+
+.role-card b {
+  font-size: 0.98rem;
+  line-height: 1.3;
+}
+
+.role-card span {
+  font-size: 0.82rem;
+  color: var(--st);
+}
+
+.st-taken    { --st: #ff5468; }
+.st-free     { --st: #7ee787; }
+.st-reserved { --st: #7cc4ff; }
+.st-staff    { --st: #c9a7ff; }
+
+.role-empty {
+  padding: 30px 0;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* ==========================================================
+   Администрация
+   ========================================================== */
+
+#interactives,
+#staff {
+  background: var(--bg-soft);
+}
+
+.staff {
+  display: grid;
+  gap: 16px;
+}
+
+.rank-card {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 20px;
+  padding: 22px;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  transition: border-color 0.25s;
+}
+
+.rank-card:hover {
+  border-color: rgba(255, 45, 70, 0.45);
+}
+
+.rank-card.vacant {
+  background: transparent;
+  border-style: dashed;
+}
+
+/* Значок ранга слева */
+
+.rank-badge {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  align-self: start;
+  height: 76px;
+  border-radius: 18px;
+  border: 2px solid var(--tier);
+  color: var(--tier);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--tier) 35%, transparent);
+}
+
+.rank-badge small {
+  font-size: 0.6rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.rank-badge b {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.tier-5 { --tier: #ffd166; }
+.tier-4 { --tier: #ff2d46; }
+.tier-3 { --tier: #ff8a3d; }
+.tier-2 { --tier: #7cc4ff; }
+.tier-1 { --tier: #9be58f; }
+
+.rank-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.rank-title h3 {
+  font-size: 1.25rem;
+}
+
+.tag {
+  padding: 3px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--tier);
+  background: color-mix(in srgb, var(--tier) 14%, transparent);
+  border-radius: 50px;
+}
+
+/* Люди */
+
+.people {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 18px 8px 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50px;
+}
+
+.person .avatar {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, var(--red), #5a0612);
+  border-radius: 50%;
+}
+
+.person b {
+  display: block;
+  line-height: 1.2;
+}
+
+.person span {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.empty {
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--muted);
+}
+
+/* Обязанности и запреты */
+
+.duties {
+  margin-top: 14px;
+}
+
+.duties summary {
+  display: inline-block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--tier);
+  cursor: pointer;
+  list-style: none;
+}
+
+.duties summary::-webkit-details-marker {
+  display: none;
+}
+
+.duties summary::after {
+  content: " ▾";
+}
+
+.duties[open] summary::after {
+  content: " ▴";
+}
+
+.duties h4 {
+  margin: 14px 0 6px;
+  font-size: 0.95rem;
+}
+
+.duties ul {
+  display: grid;
+  gap: 6px;
+  padding-left: 20px;
+  font-size: 0.93rem;
+  color: var(--muted);
+}
+
+.duties .bans li::marker {
+  content: "⛔  ";
+}
+
+.duties .tasks li::marker {
+  content: "❕  ";
+}
+
+/* Важное внизу */
+
+.probation {
+  margin-top: 26px;
+  padding: 24px;
+  background: var(--card);
+  border: 1px solid rgba(124, 196, 255, 0.35);
+  border-radius: var(--radius);
+}
+
+.probation-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-bottom: 14px;
+}
+
+.probation-head h3 {
+  font-size: 1.2rem;
+}
+
+.duration {
+  padding: 4px 14px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #7cc4ff;
+  background: rgba(124, 196, 255, 0.12);
+  border-radius: 50px;
+}
+
+.probation h4 {
+  margin: 18px 0 8px;
+  font-size: 0.98rem;
+}
+
+.probation .checks {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  color: var(--muted);
+}
+
+.probation .checks li::before {
+  content: "✔";
+  margin-right: 10px;
+  color: #7ee787;
+}
+
+.admin-bans {
+  margin-top: 26px;
+  padding: 22px 24px;
+  background: rgba(208, 15, 37, 0.1);
+  border: 1px solid rgba(255, 45, 70, 0.5);
+  border-radius: var(--radius);
+}
+
+.admin-bans h3 {
+  margin-bottom: 12px;
+}
+
+.admin-bans ul {
+  display: grid;
+  gap: 8px;
+  padding-left: 22px;
+  color: var(--muted);
+}
+
+.admin-bans li::marker {
+  content: "⛔  ";
+}
+
+.remember {
+  margin-top: 26px;
+  padding: 22px 24px;
+  background: rgba(208, 15, 37, 0.08);
+  border: 1px solid rgba(255, 45, 70, 0.35);
+  border-radius: var(--radius);
+}
+
+.remember h3 {
+  margin-bottom: 10px;
+}
+
+.remember ul {
+  display: grid;
+  gap: 8px;
+  padding-left: 20px;
+  color: var(--muted);
+}
+
+/* ==========================================================
+   Подвал
+   ========================================================== */
+
+footer {
+  padding: 28px 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+  border-top: 1px solid var(--card-border);
+}
+
+/* ==========================================================
+   Появление блоков при прокрутке
+   ========================================================== */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .ember { display: none; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* ==========================================================
+   Телефоны
+   ========================================================== */
+
+@media (max-width: 640px) {
+  section { padding: 60px 0; }
+  .role-grid { grid-template-columns: repeat(2, 1fr); }
+  .when-card { padding: 20px; gap: 14px; }
+  .logo { font-size: 0.95rem; letter-spacing: 0; }
+
+  /* Меню-«бургер» */
+  .nav-toggle { display: block; }
+
+  .nav-links {
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+    display: none;
+    flex-direction: column;
+    gap: 0;
+    padding: 6px 20px 14px;
+    font-size: 1rem;
+    background: rgba(10, 10, 13, 0.97);
+    border-bottom: 1px solid var(--card-border);
+  }
+
+  .nav-links.open { display: flex; }
+
+  .nav-links a {
+    padding: 13px 0;
+    border-bottom: 1px solid var(--card-border);
+  }
+
+  .nav-links a:last-child { border-bottom: none; }
+
+  .week { gap: 4px; }
+  .inter-grid { grid-template-columns: 1fr; }
+  .inter-card { padding: 20px; }
+  .day { font-size: 0.8rem; padding: 10px 0; }
+  .probation { padding: 20px; }
+  .rule-body { padding-left: 20px; }
+  .btn { padding: 13px 24px; }
+  .rank-card { grid-template-columns: 58px 1fr; gap: 14px; padding: 18px; }
+  .rank-badge { height: 58px; border-radius: 14px; }
+  .rank-badge small { display: none; }
+  .rank-badge b { font-size: 1.5rem; }
+}
+
+/* Пасхалка: 5 нажатий на ник владельца */
+.person {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.egg {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.egg.show {
+  display: flex;
+}
+
+.egg-box {
+  width: min(420px, 100%);
+  padding: 28px;
+  text-align: center;
+  background: #15151c;
+  border: 1px solid var(--red-bright);
+  border-radius: 22px;
+  box-shadow: 0 0 40px rgba(208, 15, 37, 0.4);
+}
+
+.egg-box h3 {
+  margin-bottom: 10px;
+}
+
+.egg-box p {
+  color: var(--muted);
+}
+
+
+/* ==========================================================
+   Таймеры
+   ========================================================== */
+
+.when-card {
+  flex-wrap: wrap;
+}
+
+.when-card > div:nth-child(2) {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.countdown {
+  flex: 1 1 100%;
+  margin-top: 6px;
+}
+
+.cd-title {
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.cd-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.cd {
+  min-width: 68px;
+  padding: 10px 8px 8px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+}
+
+.cd b {
+  display: block;
+  font-size: 1.7rem;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.cd span {
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cd-note {
+  margin-top: 10px;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.countdown.soon .cd {
+  border-color: var(--red-bright);
+  animation: soon-pulse 1.6s ease-in-out infinite;
+}
+
+.countdown.live .cd {
+  border-color: #7ee787;
+}
+
+@keyframes soon-pulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(255, 45, 70, 0); }
+  50%      { box-shadow: 0 0 18px rgba(255, 45, 70, 0.55); }
+}
+
+.inter-card.wide .countdown {
+  margin-top: 8px;
+}
+
+/* ==========================================================
+   Аватарки, копирование ника и уведомление
+   ========================================================== */
+
+.person.copyable {
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.person.copyable:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.person .avatar {
+  overflow: hidden;
+}
+
+.person .avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
+  z-index: 300;
+  max-width: 90vw;
+  padding: 11px 22px;
+  font-size: 0.95rem;
+  background: #1c1c26;
+  border: 1px solid rgba(255, 45, 70, 0.5);
+  border-radius: 50px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transform: translate(-50%, 14px);
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+@media (max-width: 640px) {
+  .cd { min-width: 60px; }
+  .cd b { font-size: 1.4rem; }
+}
+
   </style>
 </head>
 <body>
@@ -1269,7 +1400,7 @@
   <section id="staff">
     <div class="container">
       <h2 class="section-title reveal">Администрация</h2>
-      <p class="section-sub reveal">Если что-то случилось, пиши любому из них.</p>
+      <p class="section-sub reveal">Если что-то случилось, пиши любому из них. Нажми на ник, чтобы скопировать его.</p>
 
       <div class="staff" id="staffList"></div>
 
@@ -1287,592 +1418,770 @@
     </div>
   </footer>
 
+  <!-- Уведомление «ник скопирован» -->
+  <div class="toast" id="toast"></div>
+
   <!-- Пасхалка -->
   <div class="egg" id="egg">
     <div class="egg-box">
-      <h3>Пасхалка найдена 😎</h3>
-      <p>Векрорника 676767 сама такая</p>
+      <h3 id="eggTitle"></h3>
+      <p id="eggText"></p>
       <button class="btn" id="eggClose">Закрыть</button>
     </div>
   </div>
 
   <script>
-    /* ==========================================================
-       ✏️  ВСЁ, ЧТО НУЖНО МЕНЯТЬ, НАХОДИТСЯ ВОТ ЗДЕСЬ
-       ========================================================== */
+/* ==========================================================
+   ✏️  ДАННЫЕ САЙТА
+   Здесь лежат все тексты: правила, роли, администрация, чистка,
+   интерактивы и пасхалка. Меняй только то, что внутри кавычек.
+   Логика сайта находится в script.js, её трогать не нужно.
+   ========================================================== */
 
-    // Блок «Чем мы занимаемся»
-    const FEATURES = [
-      { icon: "📖", title: "Манга и аниме",  text: "Обсуждаем главы, сезоны и всё, что случилось в сюжете." },
-      { icon: "🎨", title: "Арты и мемы",    text: "Делимся творчеством, любимыми кадрами и шутками." },
-      { icon: "🧠", title: "Теории",         text: "Спорим о концовках, персонажах и скрытых деталях." },
-      { icon: "💬", title: "Просто общение", text: "Болтаем о жизни, играх, музыке и о чём угодно." },
-    ];
+// Блок «Чем мы занимаемся»
+const FEATURES = [
+  { icon: "📖", title: "Манга и аниме",  text: "Обсуждаем главы, сезоны и всё, что случилось в сюжете." },
+  { icon: "🎨", title: "Арты и мемы",    text: "Делимся творчеством, любимыми кадрами и шутками." },
+  { icon: "🧠", title: "Теории",         text: "Спорим о концовках, персонажах и скрытых деталях." },
+  { icon: "💬", title: "Просто общение", text: "Болтаем о жизни, играх, музыке и о чём угодно." },
+];
 
-    // Правила по разделам.
-    // items:       пункты раздела (text — сам пункт, list — подпункты, note — пометка)
-    // punishments: что бывает за нарушение, по порядку
-    // motto:       короткий девиз раздела
-    const RULE_GROUPS = [
+// Правила по разделам.
+// items:       пункты раздела (text — сам пункт, list — подпункты, note — пометка)
+// punishments: что бывает за нарушение, по порядку
+// motto:       короткий девиз раздела
+const RULE_GROUPS = [
+  {
+    title: "Оскорбления",
+    items: [
       {
-        title: "Оскорбления",
-        items: [
-          {
-            text: "Не оскать на эмоциях участников флуда, тем самым разжигая конфликт.",
-            note: "❕ Не наши проблемы, если вы не можете контролировать эмоции.",
-          },
-          { text: "Не оскать участников флуда, если им уже от этого неприятно или некомфортно (если продолжите, мы посчитаем это как разжигание конфликта)." },
-          { text: "Не оскать нью, как только он зашёл во флуд и пытается влиться." },
-          {
-            text: "Не оскать родословную.",
-            note: "❕ Не приветствуется такой стиль юмора и общения.",
-          },
-          { text: "Не оскорблять религию, Библию, место проживания, ориентацию." },
-          {
-            text: "Не оскать в плане: «Я вырежу твою глотку», «я достану твои органы», «вскройся», «я зарежу твою *кто-то из родословной*» и т.п.",
-            note: "❗ Воспринимается как грань оска и прямая угроза, как бы ни оправдывались и ни говорили, что это шутка и стиль вашего общения (не приветствуется!!).",
-          },
+        text: "Не оскать на эмоциях участников флуда, тем самым разжигая конфликт.",
+        note: "❕ Не наши проблемы, если вы не можете контролировать эмоции.",
+      },
+      { text: "Не оскать участников флуда, если им уже от этого неприятно или некомфортно (если продолжите, мы посчитаем это как разжигание конфликта)." },
+      { text: "Не оскать нью, как только он зашёл во флуд и пытается влиться." },
+      {
+        text: "Не оскать родословную.",
+        note: "❕ Не приветствуется такой стиль юмора и общения.",
+      },
+      { text: "Не оскорблять религию, Библию, место проживания, ориентацию." },
+      {
+        text: "Не оскать в плане: «Я вырежу твою глотку», «я достану твои органы», «вскройся», «я зарежу твою *кто-то из родословной*» и т.п.",
+        note: "❗ Воспринимается как грань оска и прямая угроза, как бы ни оправдывались и ни говорили, что это шутка и стиль вашего общения (не приветствуется!!).",
+      },
+    ],
+    punishments: ["Пред / Варн", "Мут от 30 мин до 2 ч", "Бан"],
+    motto: "Уважительнее ко всем!",
+  },
+  {
+    title: "Темы для общения",
+    items: [
+      {
+        text: "Не говорить о:",
+        list: ["Наркотиках.", "Запрещённых веществах.", "Сигаретах.", "Прошлом и нынешнем опыте с веществами.", "Порошках."],
+        note: "❕ Выражения вроде «Шо ты курил», «Я курю травку», «Ты шо наркоман» и т.п. в юмористическом контексте не запрещены. Но разжигать диалог вроде «Бля не могу бросить курить», «Что ты куришь?» (в вопросительном контексте), «Очень советую попробовать *название сиг и т.д.*» и т.п. строго запрещено.",
+      },
+      {
+        text: "Не говорить о:",
+        list: ["Алкоголе (виски и т.п.)."],
+        note: "❕ Про энергетики можно.",
+      },
+      {
+        text: "Не говорить о:",
+        list: [
+          "Политике.",
+          "Верующий ли ты или нет (если человеку неприятно об этом говорить, но вы продолжаете, посчитаем как разжигание конфликта).",
         ],
-        punishments: ["Пред / Варн", "Мут от 30 мин до 2 ч", "Бан"],
-        motto: "Уважительнее ко всем!",
       },
+      { text: "Не говорить о:", list: ["Расчленёнке подробнее.", "Слхрм."] },
       {
-        title: "Темы для общения",
-        items: [
-          {
-            text: "Не говорить о:",
-            list: ["Наркотиках.", "Запрещённых веществах.", "Сигаретах.", "Прошлом и нынешнем опыте с веществами.", "Порошках."],
-            note: "❕ Выражения вроде «Шо ты курил», «Я курю травку», «Ты шо наркоман» и т.п. в юмористическом контексте не запрещены. Но разжигать диалог вроде «Бля не могу бросить курить», «Что ты куришь?» (в вопросительном контексте), «Очень советую попробовать *название сиг и т.д.*» и т.п. строго запрещено.",
-          },
-          {
-            text: "Не говорить о:",
-            list: ["Алкоголе (виски и т.п.)."],
-            note: "❕ Про энергетики можно.",
-          },
-          {
-            text: "Не говорить о:",
-            list: [
-              "Политике.",
-              "Верующий ли ты или нет (если человеку неприятно об этом говорить, но вы продолжаете, посчитаем как разжигание конфликта).",
-            ],
-          },
-          { text: "Не говорить о:", list: ["Расчленёнке подробнее.", "Слхрм."] },
-          {
-            text: "Не говорить о таких мемах, как:",
-            list: ["Коч братан", "Танцуй Пантера", "Ронни Макаронни", "Джиган", "Голда", "Сердцеед", "Сын Мияги"],
-            note: "Запрещаются ЛЮБЫЕ мемы, где присутствует смерть, изнасилование и т.п.",
-          },
-        ],
-        punishments: ["Пред / Варн", "Мут от 30 мин до 2 ч", "Бан"],
-        motto: "Большинству такие темы не приемлемы!",
+        text: "Не говорить о таких мемах, как:",
+        list: ["Коч братан", "Танцуй Пантера", "Ронни Макаронни", "Джиган", "Голда", "Сердцеед", "Сын Мияги"],
+        note: "Запрещаются ЛЮБЫЕ мемы, где присутствует смерть, изнасилование и т.п.",
       },
+    ],
+    punishments: ["Пред / Варн", "Мут от 30 мин до 2 ч", "Бан"],
+    motto: "Большинству такие темы не приемлемы!",
+  },
+  {
+    title: "Сообщения",
+    items: [
+      { text: "Не спамить 10-ю однотипными, не несущими смысла сообщениями (так же в формате стикеров, гиф, видео и т.п.)." },
+    ],
+    punishments: ["Пред / Варн", "Бан: рейд / спам"],
+    motto: "Без спама!",
+  },
+  {
+    title: "Формат: гифки, стикеры, изображения, видео, аудио",
+    items: [
       {
-        title: "Сообщения",
-        items: [
-          { text: "Не спамить 10-ю однотипными, не несущими смысла сообщениями (так же в формате стикеров, гиф, видео и т.п.)." },
-        ],
-        punishments: ["Пред / Варн", "Бан: рейд / спам"],
-        motto: "Без спама!",
-      },
-      {
-        title: "Формат: гифки, стикеры, изображения, видео, аудио",
-        items: [
-          {
-            text: "Не отправлять:",
-            list: [
-              "Порнографию.",
-              "Сексуализацию обоих полов.",
-              "Девушек и парней в обтягивающей одежде в сексуальном контексте.",
-              "Людей, повёрнутых спиной, с акцентом на интимные места в сексуальном контексте.",
-              "Людей в купальниках с акцентом на интимные зоны в сексуальном контексте.",
-              "Оголённых и полуголых людей.",
-            ],
-          },
-          {
-            text: "Не отправлять:",
-            list: [
-              "Расчленёнку и всё, где стоит возрастной рейтинг 16–21+.",
-              "Контент не для слабонервных.",
-            ],
-            note: "❗ Под расчленёнкой имеется в виду даже маленькая царапина и всё, где присутствует кровь. Просим заблюрить. (К аниме ТГ не относится.)",
-          },
-        ],
-        punishments: ["Пред / Варн", "Мут от 15 мин до 1 ч", "Бан"],
-        motto: "Психика участников превыше всего!",
-      },
-      {
-        title: "Конфликты",
-        items: [
-          { text: "Если ваша дискуссия или обычное общение переросло в конфликт или агрессивный спор, просим вас перейти в лс и продолжить там." },
-        ],
-        punishments: ["Пред / Варн", "Мут от 1 до 2 ч", "Бан: на крайний случай"],
-        motto: "Вряд ли участникам будет комфортно наблюдать за конфликтом!",
-      },
-    ];
-
-    // Интерактивы
-    const INTERACTIVES = {
-      intro: { icon: "🎮", text: "Развлекательные интерактивы проводятся раз в неделю." },
-      period: {
-        icon: "🕒",
-        text: "Период проведения: со среды до субботы (00:00) по берлинскому времени.",
-        activeDays: [2, 3, 4],   // 0 = Пн ... 6 = Вс; здесь Ср, Чт, Пт
-        endDay: 5,               // суббота: в 00:00 заканчивается
-      },
-      ideas: [
-        { icon: "💡", text: "Есть интересная идея для нового интерактива? Не стесняйтесь делиться предложениями с владельцем или любым представителем администрации." },
-        { icon: "✨", text: "Мы всегда рады новым идеям и стараемся сделать флуд интереснее для каждого участника." },
-      ],
-    };
-
-    // Испытательный срок новых админов
-    const PROBATION = {
-      title: "Испытательный срок для новых Админов",
-      duration: "От 7 до 14 дней",
-      result: "По окончании администрация решает, повышать ли испытуемого или снять с должности.",
-      requirementsTitle: "Повышения можно добиться:",
-      requirements: [
-        "Активной работой.",
-        "Адекватным общением.",
-        "Помощью участникам и администрации.",
-        "Отсутствием серьёзных нарушений.",
-        "Помощью во вливании Нью.",
-      ],
-    };
-
-    // Чистка и норма
-    const CLEANUP = {
-      legend: "соо — сообщения",
-      when: { icon: "🕯️", day: "Каждое воскресенье", time: "12:20 по Берлину" },
-
-      // Норма: сколько соо нужно набрать за неделю
-      norms: [
-        { who: "Участники",     note: "",                    amount: 120, penalty: "1 Пред" },
-        { who: "Администрация", note: "кроме монтажёров",    amount: 250, penalty: "1 Пред" },
-      ],
-
-      // Если набрал сильно меньше нормы
-      shortfalls: [
-        { who: "Участники",     amount: 50, penalty: "Пред 2 недели" },
-        { who: "Администрация", amount: 75, penalty: "Пред 2 недели + Пред" },
-      ],
-
-      notes: [
-        { icon: "❗", text: "Если вы зашли во флуд за 4–1 день до чистки и не набрали норму, вас проигнорируют на чистке, так как вы всё ещё являетесь нью." },
-        { icon: "‼️", text: "Если вы неактивны более 4 дней, вы получаете бан за неактивность." },
-      ],
-    };
-
-    // Статусы ролей
-    const ROLE_STATUS = {
-      free:     { emoji: "☕", label: "Не занят" },
-      taken:    { emoji: "🩸", label: "Занят" },
-      reserved: { emoji: "🪽", label: "Бронь" },
-      staff:    { emoji: "🌙", label: "Администрация" },
-    };
-
-    // Роли: [имя персонажа, статус]
-    // статус: "free" / "taken" / "reserved" / "staff"
-    const ROLES = [
-      ["Канеки Кен", "taken"],
-      ["Тоука Киришима", "taken"],
-      ["Аято Киришима", "taken"],
-      ["Ризе Камиширо", "staff"],
-      ["Хинами Фуегучи", "taken"],
-      ["Арата Киришима", "reserved"],
-      ["Йошимура (Кудзен)", "staff"],
-      ["Это Йошимура", "taken"],
-      ["Ренджи Йомо", "taken"],
-      ["Ута", "staff"],
-      ["Итори", "taken"],
-      ["Энджи Кома", "free"],
-      ["Кая Ирими", "taken"],
-      ["Нишики Нишио", "taken"],
-      ["Кими Нишио", "taken"],
-      ["Шу Цукияма", "staff"],
-      ["Канае Фон Розевальд", "free"],
-      ["Курона Ясихуса", "taken"],
-      ["Наширо Ясухиса", "free"],
-      ["Котаро Амон", "taken"],
-      ["Арима Кишо", "taken"],
-      ["Джузо Сузуя", "taken"],
-      ["Дзюдзоу Сузуя", "free"],
-      ["Акира Мадо", "taken"],
-      ["Курео Мадо", "taken"],
-      ["Юкинори Шинохара", "taken"],
-      ["Ивао Куроива", "free"],
-      ["Таке Хирако", "free"],
-      ["Сейдо Такизава", "taken"],
-      ["Хидейоши Нагачика", "taken"],
-      ["Рома Хойто", "taken"],
-      ["Донато Порпора", "taken"],
-      ["Норо", "free"],
-      ["Татара", "taken"],
-      ["Якумо Оомори", "free"],
-      ["Нико", "free"],
-      ["Ичими", "taken"],
-      ["Косуке Ходжи", "free"],
-      ["Мацури Вашу", "free"],
-      ["Йошитоки Вашу", "free"],
-      ["Цунейоши Вашу", "free"],
-      ["Таиши Фура", "free"],
-      ["Сайко Йонебаяши", "taken"],
-      ["Куки Урие", "free"],
-      ["Тоору Мицуки", "taken"],
-      ["Хаджиме Хазуки", "free"],
-      ["Кийоко Аура", "taken"],
-      ["Хайсе Сасаки", "staff"],
-      ["Фурута Нимура", "taken"],
-      ["Марис Стелла(Кошка Акиры)", "taken"],
-      ["Минами Уруку", "taken"],
-      ["Хаира Ихей", "taken"],
-      ["Ширазу Гинши", "free"],
-      ["Хетаре", "free"],
-      ["Омори Джейсон", "taken"],
-    ];
-
-    // Администрация (от старшего ранга к младшему)
-    // people: [] — значит место свободно
-    const STAFF = [
-      {
-        rank: 5, title: "Владелец",
-        people: [{ name: "Ризе Камиширо", tag: "@ronifrag" }],
-        duties: [],
-      },
-      {
-        rank: 4, title: "Совладелец",
-        people: [],
-        duties: [
-          "Следить за флудом.",
-          "Искать, принимать и помогать влиться Нью.",
-          "Следить за администрацией ниже рангом.",
-          "Разбираться в любых конфликтах.",
-          "Выдавать Варн/Мут/Бан только завися и разобравшись в ситуации.",
-          "Не нарушать правила, выполнять свою должность как следует.",
+        text: "Не отправлять:",
+        list: [
+          "Порнографию.",
+          "Сексуализацию обоих полов.",
+          "Девушек и парней в обтягивающей одежде в сексуальном контексте.",
+          "Людей, повёрнутых спиной, с акцентом на интимные места в сексуальном контексте.",
+          "Людей в купальниках с акцентом на интимные зоны в сексуальном контексте.",
+          "Оголённых и полуголых людей.",
         ],
       },
       {
-        rank: 3, title: "Младшие Админы",
-        people: [],
-        duties: [
-          "Следить за флудом.",
-          "Искать, принимать и помогать влиться Нью.",
-          "Разбираться в любых конфликтах.",
-          "Выдавать Варн/Мут только завися и разобравшись в ситуации.",
-          "Следить за работой старших и младших модераторов.",
-          "При спорных ситуациях советоваться со старшими рангами.",
-          "Устраивать интерактивы и бинго.",
-          "Не нарушать правила, выполнять свою должность как следует.",
+        text: "Не отправлять:",
+        list: [
+          "Расчленёнку и всё, где стоит возрастной рейтинг 16–21+.",
+          "Контент не для слабонервных.",
         ],
+        note: "❗ Под расчленёнкой имеется в виду даже маленькая царапина и всё, где присутствует кровь. Просим заблюрить. (К аниме ТГ не относится.)",
       },
-      {
-        rank: 2, title: "Старшие Модераторы",
-        people: [{ name: "Шу Цукияма", tag: "@hollow_grim" }],
-        duties: [
-          "Поддерживать общение во флуде.",
-          "Вливать Нью.",
-          "Разбираться в любых конфликтах.",
-          "При спорных ситуациях советоваться со старшими рангами.",
-          "Выдавать Варн/Мут только завися и разобравшись в ситуации.",
-          "Помогать неактивным участникам набирать норму.",
-          "Не нарушать правила, выполнять свою должность как следует.",
-        ],
-      },
-      {
-        rank: 1, title: "Младшие Модераторы", note: "Испытательный срок",
-        people: [
-  { name: "Хайсе Сасаки", tag: "@Goofikills" },
-  { name: "Йошимура Кудзен", tag: "@Short_player" },
-],
-        duties: [
-          "Вливать Нью.",
-          "Помогать Администрации.",
-          "Не нарушать правила.",
-          "Пытаться разобраться в конфликтах (особенно при отсутствии администрации).",
-          "Звать Администрацию, если участники нарушают правила.",
-        ],
-      },
-      {
-        rank: 1, title: "Монтажёры",
-        people: [{ name: "Ута", tag: "@l69pizl" }],
-        duties: ["Делать видео-рекламы для флуда (мин. 3–5 в неделю)."],
-      },
-    ];
+    ],
+    punishments: ["Пред / Варн", "Мут от 15 мин до 1 ч", "Бан"],
+    motto: "Психика участников превыше всего!",
+  },
+  {
+    title: "Конфликты",
+    items: [
+      { text: "Если ваша дискуссия или обычное общение переросло в конфликт или агрессивный спор, просим вас перейти в лс и продолжить там." },
+    ],
+    punishments: ["Пред / Варн", "Мут от 1 до 2 ч", "Бан: на крайний случай"],
+    motto: "Вряд ли участникам будет комфортно наблюдать за конфликтом!",
+  },
+];
 
-    // Запреты для всей администрации
-    const STAFF_BANS = [
-      "Выдавать наказания из-за личной неприязни.",
-      "Наказывать друзей и знакомых мягче остальных.",
-      "Наказывать без объяснения причины.",
-    ];
+// Интерактивы
+const INTERACTIVES = {
+  intro: { icon: "🎮", text: "Развлекательные интерактивы проводятся раз в неделю." },
+  period: {
+    icon: "🕒",
+    text: "Период проведения: со среды до субботы (00:00) по берлинскому времени.",
+    activeDays: [2, 3, 4],   // для полоски дней: 0 = Пн ... 6 = Вс; здесь Ср, Чт, Пт
+    endDay: 5,               // суббота: в 00:00 заканчивается
 
-    // Блок «Помним!» под администрацией
-    const STAFF_NOTES = [
-      "Попал в администрацию — не повод для гордости. Это ответственность, а не соревнование, кто лучше и у кого больше власти.",
-      "Каждая должность важна и несёт ответственность.",
-    ];
+    // Для таймера (время по Берлину, 00:00): 0 = воскресенье ... 6 = суббота
+    startWeekday: 3,         // начало: среда
+    endWeekday: 6,           // конец: суббота
+  },
+  ideas: [
+    { icon: "💡", text: "Есть интересная идея для нового интерактива? Не стесняйтесь делиться предложениями с владельцем или любым представителем администрации." },
+    { icon: "✨", text: "Мы всегда рады новым идеям и стараемся сделать флуд интереснее для каждого участника." },
+  ],
+};
 
+// Испытательный срок новых админов
+const PROBATION = {
+  title: "Испытательный срок для новых Админов",
+  duration: "От 7 до 14 дней",
+  result: "По окончании администрация решает, повышать ли испытуемого или снять с должности.",
+  requirementsTitle: "Повышения можно добиться:",
+  requirements: [
+    "Активной работой.",
+    "Адекватным общением.",
+    "Помощью участникам и администрации.",
+    "Отсутствием серьёзных нарушений.",
+    "Помощью во вливании Нью.",
+  ],
+};
 
-    /* ==========================================================
-       Дальше код менять не нужно
-       ========================================================== */
+// Чистка и норма
+const CLEANUP = {
+  legend: "соо — сообщения",
+  when: {
+    icon: "🕯️",
+    day: "Каждое воскресенье",
+    time: "12:20 по Берлину",
 
-    const $ = (id) => document.getElementById(id);
+    // Для таймера (время всегда по Берлину)
+    weekday: 0,    // 0 = воскресенье, 1 = понедельник ... 6 = суббота
+    hour: 12,
+    minute: 20,
+  },
 
-    // Чем занимаемся
-    $("features").innerHTML = FEATURES.map((f) => `
-      <div class="feature reveal">
-        <div class="feature-icon">${f.icon}</div>
-        <h3>${f.title}</h3>
-        <p>${f.text}</p>
-      </div>`).join("");
+  // Норма: сколько соо нужно набрать за неделю
+  norms: [
+    { who: "Участники",     note: "",                    amount: 120, penalty: "1 Пред" },
+    { who: "Администрация", note: "кроме монтажёров",    amount: 250, penalty: "1 Пред" },
+  ],
 
-    // Правила
-    $("rulesList").innerHTML = RULE_GROUPS.map((g) => {
-      const items = g.items.map((it) => `
-        <li>
-          ${it.text}
-          ${it.list ? `<ul>${it.list.map((x) => `<li>${x}</li>`).join("")}</ul>` : ""}
-          ${it.note ? `<div class="rule-note">${it.note}</div>` : ""}
-        </li>`).join("");
+  // Если набрал сильно меньше нормы
+  shortfalls: [
+    { who: "Участники",     amount: 50, penalty: "Пред 2 недели" },
+    { who: "Администрация", amount: 75, penalty: "Пред 2 недели + Пред" },
+  ],
 
-      const steps = g.punishments
-        .map((p) => `<span class="penalty-step">${p}</span>`)
-        .join(`<span class="penalty-arrow">→</span>`);
+  notes: [
+    { icon: "❗", text: "Если вы зашли во флуд за 4–1 день до чистки и не набрали норму, вас проигнорируют на чистке, так как вы всё ещё являетесь нью." },
+    { icon: "‼️", text: "Если вы неактивны более 4 дней, вы получаете бан за неактивность." },
+  ],
+};
 
-      return `
-        <details class="rule reveal">
-          <summary>${g.title}</summary>
-          <div class="rule-body">
-            <ul class="rule-items">${items}</ul>
-            <div class="penalty">
-              <span class="penalty-label">Нарушение:</span>${steps}
-            </div>
-            <p class="motto">${g.motto}</p>
-          </div>
-        </details>`;
-    }).join("");
+// Статусы ролей
+const ROLE_STATUS = {
+  free:     { emoji: "☕", label: "Не занят" },
+  taken:    { emoji: "🩸", label: "Занят" },
+  reserved: { emoji: "🪽", label: "Бронь" },
+  staff:    { emoji: "🌙", label: "Администрация" },
+};
 
-    // Чистка и норма
-    $("cleanupLegend").textContent =
-      `Когда проходит чистка и сколько сообщений нужно набрать. (${CLEANUP.legend})`;
+// Роли: [имя персонажа, статус]
+// статус: "free" / "taken" / "reserved" / "staff"
+const ROLES = [
+  ["Канеки Кен", "taken"],
+  ["Тоука Киришима", "taken"],
+  ["Аято Киришима", "taken"],
+  ["Ризе Камиширо", "staff"],
+  ["Хинами Фуегучи", "taken"],
+  ["Арата Киришима", "reserved"],
+  ["Йошимура (Кудзен)", "staff"],
+  ["Это Йошимура", "taken"],
+  ["Ренджи Йомо", "taken"],
+  ["Ута", "staff"],
+  ["Итори", "taken"],
+  ["Энджи Кома", "free"],
+  ["Кая Ирими", "taken"],
+  ["Нишики Нишио", "taken"],
+  ["Кими Нишио", "taken"],
+  ["Шу Цукияма", "staff"],
+  ["Канае Фон Розевальд", "free"],
+  ["Курона Ясихуса", "taken"],
+  ["Наширо Ясухиса", "free"],
+  ["Котаро Амон", "taken"],
+  ["Арима Кишо", "taken"],
+  ["Джузо Сузуя", "taken"],
+  ["Дзюдзоу Сузуя", "free"],
+  ["Акира Мадо", "taken"],
+  ["Курео Мадо", "taken"],
+  ["Юкинори Шинохара", "taken"],
+  ["Ивао Куроива", "free"],
+  ["Таке Хирако", "free"],
+  ["Сейдо Такизава", "taken"],
+  ["Хидейоши Нагачика", "taken"],
+  ["Рома Хойто", "taken"],
+  ["Донато Порпора", "taken"],
+  ["Норо", "free"],
+  ["Татара", "taken"],
+  ["Якумо Оомори", "free"],
+  ["Нико", "free"],
+  ["Ичими", "taken"],
+  ["Косуке Ходжи", "free"],
+  ["Мацури Вашу", "free"],
+  ["Йошитоки Вашу", "free"],
+  ["Цунейоши Вашу", "free"],
+  ["Таиши Фура", "free"],
+  ["Сайко Йонебаяши", "taken"],
+  ["Куки Урие", "free"],
+  ["Тоору Мицуки", "taken"],
+  ["Хаджиме Хазуки", "free"],
+  ["Кийоко Аура", "taken"],
+  ["Хайсе Сасаки", "staff"],
+  ["Фурута Нимура", "taken"],
+  ["Марис Стелла(Кошка Акиры)", "taken"],
+  ["Минами Уруку", "taken"],
+  ["Хаира Ихей", "taken"],
+  ["Ширазу Гинши", "free"],
+  ["Хетаре", "free"],
+  ["Омори Джейсон", "taken"],
+];
 
-    $("cleanupWhen").innerHTML = `
-      <div class="when-icon">${CLEANUP.when.icon}</div>
-      <div><b>${CLEANUP.when.day}</b><span>${CLEANUP.when.time}</span></div>`;
+// Администрация (от старшего ранга к младшему)
+// people: [] — значит место свободно
+//
+// У каждого человека можно указать (необязательно):
+//   tag:    ник, по нажатию на него ник копируется
+//   avatar: "avatars/имя-файла.jpg" — картинка вместо буквы (файл положить в папку avatars)
+//   icon:   "🩸" — эмодзи вместо буквы
+const STAFF = [
+  {
+    rank: 5, title: "Владелец",
+    people: [{ name: "Ризе Камиширо", tag: "@ronifrag" }],
+    duties: [],
+  },
+  {
+    rank: 4, title: "Совладелец",
+    people: [],
+    duties: [
+      "Следить за флудом.",
+      "Искать, принимать и помогать влиться Нью.",
+      "Следить за администрацией ниже рангом.",
+      "Разбираться в любых конфликтах.",
+      "Выдавать Варн/Мут/Бан только завися и разобравшись в ситуации.",
+      "Не нарушать правила, выполнять свою должность как следует.",
+    ],
+  },
+  {
+    rank: 3, title: "Младшие Админы",
+    people: [],
+    duties: [
+      "Следить за флудом.",
+      "Искать, принимать и помогать влиться Нью.",
+      "Разбираться в любых конфликтах.",
+      "Выдавать Варн/Мут только завися и разобравшись в ситуации.",
+      "Следить за работой старших и младших модераторов.",
+      "При спорных ситуациях советоваться со старшими рангами.",
+      "Устраивать интерактивы и бинго.",
+      "Не нарушать правила, выполнять свою должность как следует.",
+    ],
+  },
+  {
+    rank: 2, title: "Старшие Модераторы",
+    people: [{ name: "Шу Цукияма", tag: "@hollow_grim" }],
+    duties: [
+      "Поддерживать общение во флуде.",
+      "Вливать Нью.",
+      "Разбираться в любых конфликтах.",
+      "При спорных ситуациях советоваться со старшими рангами.",
+      "Выдавать Варн/Мут только завися и разобравшись в ситуации.",
+      "Помогать неактивным участникам набирать норму.",
+      "Не нарушать правила, выполнять свою должность как следует.",
+    ],
+  },
+  {
+    rank: 1, title: "Младшие Модераторы", note: "Испытательный срок",
+    people: [
+      { name: "Хайсе Сасаки", tag: "@Goofikills" },
+      { name: "Йошимура Кудзен", tag: "" },
+    ],
+    duties: [
+      "Вливать Нью.",
+      "Помогать Администрации.",
+      "Не нарушать правила.",
+      "Пытаться разобраться в конфликтах (особенно при отсутствии администрации).",
+      "Звать Администрацию, если участники нарушают правила.",
+    ],
+  },
+  {
+    rank: 1, title: "Монтажёры",
+    people: [{ name: "Ута", tag: "@l69pizl" }],
+    duties: ["Делать видео-рекламы для флуда (мин. 3–5 в неделю)."],
+  },
+];
 
-    $("cleanupNorms").innerHTML = CLEANUP.norms.map((n) => `
-      <div class="norm-card reveal">
-        <div class="norm-who">${n.who}${n.note ? `<small>${n.note}</small>` : ""}</div>
-        <div class="norm-num">${n.amount}<small>соо в неделю</small></div>
-        <div class="norm-pen">Не набрал норму: <b>${n.penalty}</b></div>
-      </div>`).join("");
+// Запреты для всей администрации
+const STAFF_BANS = [
+  "Выдавать наказания из-за личной неприязни.",
+  "Наказывать друзей и знакомых мягче остальных.",
+  "Наказывать без объяснения причины.",
+];
 
-    $("cleanupShort").innerHTML = CLEANUP.shortfalls.map((f) => `
-      <div class="shortfall reveal">
-        <span class="what">Недонабор ${f.amount} соо <small>· ${f.who}</small></span>
-        <span class="arrow-sign">→</span>
-        <span class="penalty-step">${f.penalty}</span>
-      </div>`).join("");
+// Блок «Помним!» под администрацией
+const STAFF_NOTES = [
+  "Попал в администрацию — не повод для гордости. Это ответственность, а не соревнование, кто лучше и у кого больше власти.",
+  "Каждая должность важна и несёт ответственность.",
+];
 
-    $("cleanupNotes").innerHTML = CLEANUP.notes.map((n) => `
-      <div class="callout reveal">
-        <span class="callout-icon">${n.icon}</span>
-        <p>${n.text}</p>
-      </div>`).join("");
+// Пасхалка: сколько раз нужно нажать на карточку человека с этим ником
+const EASTER_EGG = {
+  tag: "@ronifrag",
+  clicks: 5,
+  title: "Пасхалка найдена 😎",
+  text: "Векрорника 676767 сама такая",
+};
 
-    // Интерактивы
-    const WEEK_DAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
-    const IA = INTERACTIVES;
+/* ==========================================================
+   Логика сайта. Тексты и данные лежат в data.js,
+   здесь ничего менять не нужно.
+   ========================================================== */
 
-    const weekStrip = WEEK_DAYS.map((d, i) => {
-      const on = IA.period.activeDays.includes(i);
-      const end = i === IA.period.endDay;
-      return `<div class="day ${on ? "on" : ""}">${d}${end ? "<small>00:00</small>" : ""}</div>`;
-    }).join("");
+const $ = (id) => document.getElementById(id);
 
-    $("interGrid").innerHTML = `
-      <div class="inter-card wide reveal">
-        <div class="inter-row">
-          <div class="inter-icon">${IA.intro.icon}</div>
-          <p>${IA.intro.text}</p>
+// Чем занимаемся
+$("features").innerHTML = FEATURES.map((f) => `
+  <div class="feature reveal">
+    <div class="feature-icon">${f.icon}</div>
+    <h3>${f.title}</h3>
+    <p>${f.text}</p>
+  </div>`).join("");
+
+// Правила
+$("rulesList").innerHTML = RULE_GROUPS.map((g) => {
+  const items = g.items.map((it) => `
+    <li>
+      ${it.text}
+      ${it.list ? `<ul>${it.list.map((x) => `<li>${x}</li>`).join("")}</ul>` : ""}
+      ${it.note ? `<div class="rule-note">${it.note}</div>` : ""}
+    </li>`).join("");
+
+  const steps = g.punishments
+    .map((p) => `<span class="penalty-step">${p}</span>`)
+    .join(`<span class="penalty-arrow">→</span>`);
+
+  return `
+    <details class="rule reveal">
+      <summary>${g.title}</summary>
+      <div class="rule-body">
+        <ul class="rule-items">${items}</ul>
+        <div class="penalty">
+          <span class="penalty-label">Нарушение:</span>${steps}
         </div>
-        <div class="inter-row">
-          <div class="inter-icon">${IA.period.icon}</div>
-          <p>${IA.period.text}</p>
+        <p class="motto">${g.motto}</p>
+      </div>
+    </details>`;
+}).join("");
+
+// Чистка и норма
+$("cleanupLegend").textContent =
+  `Когда проходит чистка и сколько сообщений нужно набрать. (${CLEANUP.legend})`;
+
+$("cleanupWhen").innerHTML = `
+  <div class="when-icon">${CLEANUP.when.icon}</div>
+  <div><b>${CLEANUP.when.day}</b><span>${CLEANUP.when.time}</span></div>
+  <div class="countdown" id="cleanupCountdown"></div>`;
+
+$("cleanupNorms").innerHTML = CLEANUP.norms.map((n) => `
+  <div class="norm-card reveal">
+    <div class="norm-who">${n.who}${n.note ? `<small>${n.note}</small>` : ""}</div>
+    <div class="norm-num">${n.amount}<small>соо в неделю</small></div>
+    <div class="norm-pen">Не набрал норму: <b>${n.penalty}</b></div>
+  </div>`).join("");
+
+$("cleanupShort").innerHTML = CLEANUP.shortfalls.map((f) => `
+  <div class="shortfall reveal">
+    <span class="what">Недонабор ${f.amount} соо <small>· ${f.who}</small></span>
+    <span class="arrow-sign">→</span>
+    <span class="penalty-step">${f.penalty}</span>
+  </div>`).join("");
+
+$("cleanupNotes").innerHTML = CLEANUP.notes.map((n) => `
+  <div class="callout reveal">
+    <span class="callout-icon">${n.icon}</span>
+    <p>${n.text}</p>
+  </div>`).join("");
+
+// Интерактивы
+const WEEK_DAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+const IA = INTERACTIVES;
+
+const weekStrip = WEEK_DAYS.map((d, i) => {
+  const on = IA.period.activeDays.includes(i);
+  const end = i === IA.period.endDay;
+  return `<div class="day ${on ? "on" : ""}">${d}${end ? "<small>00:00</small>" : ""}</div>`;
+}).join("");
+
+$("interGrid").innerHTML = `
+  <div class="inter-card wide reveal">
+    <div class="inter-row">
+      <div class="inter-icon">${IA.intro.icon}</div>
+      <p>${IA.intro.text}</p>
+    </div>
+    <div class="inter-row">
+      <div class="inter-icon">${IA.period.icon}</div>
+      <p>${IA.period.text}</p>
+    </div>
+    <div class="week">${weekStrip}</div>
+    <div class="countdown" id="interCountdown"></div>
+  </div>
+  ${IA.ideas.map((it) => `
+    <div class="inter-card reveal">
+      <div class="inter-icon">${it.icon}</div>
+      <p>${it.text}</p>
+    </div>`).join("")}`;
+
+// Роли: фильтры, поиск и список
+let roleFilter = "all";
+let roleQuery = "";
+
+function renderRoleFilters() {
+  const buttons = [["all", "Все", ROLES.length]].concat(
+    Object.entries(ROLE_STATUS).map(([key, st]) => [
+      key,
+      `${st.emoji} ${st.label}`,
+      ROLES.filter((r) => r[1] === key).length,
+    ])
+  );
+
+  $("roleFilters").innerHTML = buttons.map(([key, label, count]) => `
+    <button class="filter ${key === roleFilter ? "active" : ""}" data-filter="${key}">
+      ${label}<small>${count}</small>
+    </button>`).join("");
+}
+
+function renderRoles() {
+  const q = roleQuery.trim().toLowerCase();
+  const list = ROLES.filter(([name, status]) =>
+    (roleFilter === "all" || status === roleFilter) &&
+    name.toLowerCase().includes(q)
+  );
+
+  $("roleGrid").innerHTML = list.map(([name, status]) => `
+    <div class="role-card st-${status}">
+      <b>${name}</b>
+      <span>${ROLE_STATUS[status].emoji} ${ROLE_STATUS[status].label}</span>
+    </div>`).join("");
+
+  $("roleEmpty").classList.toggle("hidden", list.length > 0);
+}
+
+$("roleFilters").addEventListener("click", (e) => {
+  const btn = e.target.closest(".filter");
+  if (!btn) return;
+  roleFilter = btn.dataset.filter;
+  renderRoleFilters();
+  renderRoles();
+});
+
+$("roleSearch").addEventListener("input", (e) => {
+  roleQuery = e.target.value;
+  renderRoles();
+});
+
+renderRoleFilters();
+renderRoles();
+
+// Администрация
+const listHTML = (items) => items.map((t) => `<li>${t}</li>`).join("");
+
+$("staffList").innerHTML = STAFF.map((g) => {
+  const people = g.people.length
+    ? g.people.map((p) => {
+        const letter = p.name.charAt(0).toUpperCase();
+        const avatar = p.avatar
+          ? `<img src="${p.avatar}" alt="" data-letter="${letter}"
+                  onerror="this.replaceWith(document.createTextNode(this.dataset.letter))">`
+          : (p.icon || letter);
+
+        return `
+          <div class="person ${p.tag ? "copyable" : ""}" data-tag="${p.tag || ""}">
+            <div class="avatar">${avatar}</div>
+            <div><b>${p.name}</b>${p.tag ? `<span>${p.tag}</span>` : ""}</div>
+          </div>`;
+      }).join("")
+    : `<span class="empty">Место свободно</span>`;
+
+  const details = g.duties.length ? `
+    <details class="duties">
+      <summary>Обязанности</summary>
+      <ul class="tasks">${listHTML(g.duties)}</ul>
+    </details>` : "";
+
+  return `
+    <div class="rank-card tier-${g.rank} ${g.people.length ? "" : "vacant"} reveal">
+      <div class="rank-badge"><small>ранг</small><b>${g.rank}</b></div>
+      <div>
+        <div class="rank-title">
+          <h3>${g.title}</h3>
+          ${g.note ? `<span class="tag">${g.note}</span>` : ""}
         </div>
-        <div class="week">${weekStrip}</div>
+        <div class="people">${people}</div>
+        ${details}
       </div>
-      ${IA.ideas.map((it) => `
-        <div class="inter-card reveal">
-          <div class="inter-icon">${it.icon}</div>
-          <p>${it.text}</p>
-        </div>`).join("")}`;
+    </div>`;
+}).join("");
 
-    // Роли: фильтры, поиск и список
-    let roleFilter = "all";
-    let roleQuery = "";
+$("adminBans").innerHTML =
+  `<h3>❗ Запрет для всей Администрации</h3><ul>${listHTML(STAFF_BANS)}</ul>`;
 
-    function renderRoleFilters() {
-      const buttons = [["all", "Все", ROLES.length]].concat(
-        Object.entries(ROLE_STATUS).map(([key, st]) => [
-          key,
-          `${st.emoji} ${st.label}`,
-          ROLES.filter((r) => r[1] === key).length,
-        ])
-      );
+$("probation").innerHTML = `
+  <div class="probation-head">
+    <h3>${PROBATION.title}</h3>
+    <span class="duration">${PROBATION.duration}</span>
+  </div>
+  <div class="rule-note">${PROBATION.result}</div>
+  <h4>${PROBATION.requirementsTitle}</h4>
+  <ul class="checks">${listHTML(PROBATION.requirements)}</ul>`;
 
-      $("roleFilters").innerHTML = buttons.map(([key, label, count]) => `
-        <button class="filter ${key === roleFilter ? "active" : ""}" data-filter="${key}">
-          ${label}<small>${count}</small>
-        </button>`).join("");
-    }
+$("remember").innerHTML =
+  `<h3>❕ Помним!</h3><ul>${listHTML(STAFF_NOTES)}</ul>`;
 
-    function renderRoles() {
-      const q = roleQuery.trim().toLowerCase();
-      const list = ROLES.filter(([name, status]) =>
-        (roleFilter === "all" || status === roleFilter) &&
-        name.toLowerCase().includes(q)
-      );
+// Искры на главном экране
+const embers = $("embers");
+for (let i = 0; i < 28; i++) {
+  const e = document.createElement("div");
+  e.className = "ember";
+  e.style.left = `${Math.random() * 100}%`;
+  e.style.animationDuration = `${6 + Math.random() * 8}s`;
+  e.style.animationDelay = `${Math.random() * 8}s`;
+  embers.appendChild(e);
+}
 
-      $("roleGrid").innerHTML = list.map(([name, status]) => `
-        <div class="role-card st-${status}">
-          <b>${name}</b>
-          <span>${ROLE_STATUS[status].emoji} ${ROLE_STATUS[status].label}</span>
-        </div>`).join("");
+// Мобильное меню
+const navToggle = $("navToggle");
+const navLinks = document.querySelector(".nav-links");
 
-      $("roleEmpty").classList.toggle("hidden", list.length > 0);
-    }
+function setMenu(open) {
+  navLinks.classList.toggle("open", open);
+  navToggle.setAttribute("aria-expanded", open);
+  navToggle.textContent = open ? "✕" : "☰";
+}
 
-    $("roleFilters").addEventListener("click", (e) => {
-      const btn = e.target.closest(".filter");
-      if (!btn) return;
-      roleFilter = btn.dataset.filter;
-      renderRoleFilters();
-      renderRoles();
-    });
+navToggle.addEventListener("click", () => {
+  setMenu(!navLinks.classList.contains("open"));
+});
 
-    $("roleSearch").addEventListener("input", (e) => {
-      roleQuery = e.target.value;
-      renderRoles();
-    });
+navLinks.addEventListener("click", (e) => {
+  if (e.target.tagName === "A") setMenu(false);
+});
 
-    renderRoleFilters();
-    renderRoles();
+// Плавное появление блоков при прокрутке
+const revealItems = document.querySelectorAll(".reveal");
 
-    // Администрация
-    const listHTML = (items) => items.map((t) => `<li>${t}</li>`).join("");
-
-    $("staffList").innerHTML = STAFF.map((g) => {
-      const people = g.people.length
-        ? g.people.map((p) => `
-            <div class="person">
-              <div class="avatar">${p.name.charAt(0).toUpperCase()}</div>
-              <div><b>${p.name}</b><span>${p.tag}</span></div>
-            </div>`).join("")
-        : `<span class="empty">Место свободно</span>`;
-
-      const details = g.duties.length ? `
-        <details class="duties">
-          <summary>Обязанности</summary>
-          <ul class="tasks">${listHTML(g.duties)}</ul>
-        </details>` : "";
-
-      return `
-        <div class="rank-card tier-${g.rank} ${g.people.length ? "" : "vacant"} reveal">
-          <div class="rank-badge"><small>ранг</small><b>${g.rank}</b></div>
-          <div>
-            <div class="rank-title">
-              <h3>${g.title}</h3>
-              ${g.note ? `<span class="tag">${g.note}</span>` : ""}
-            </div>
-            <div class="people">${people}</div>
-            ${details}
-          </div>
-        </div>`;
-    }).join("");
-
-    $("adminBans").innerHTML =
-      `<h3>❗ Запрет для всей Администрации</h3><ul>${listHTML(STAFF_BANS)}</ul>`;
-
-    $("probation").innerHTML = `
-      <div class="probation-head">
-        <h3>${PROBATION.title}</h3>
-        <span class="duration">${PROBATION.duration}</span>
-      </div>
-      <div class="rule-note">${PROBATION.result}</div>
-      <h4>${PROBATION.requirementsTitle}</h4>
-      <ul class="checks">${listHTML(PROBATION.requirements)}</ul>`;
-
-    $("remember").innerHTML =
-      `<h3>❕ Помним!</h3><ul>${listHTML(STAFF_NOTES)}</ul>`;
-
-    // Искры на главном экране
-    const embers = $("embers");
-    for (let i = 0; i < 28; i++) {
-      const e = document.createElement("div");
-      e.className = "ember";
-      e.style.left = `${Math.random() * 100}%`;
-      e.style.animationDuration = `${6 + Math.random() * 8}s`;
-      e.style.animationDelay = `${Math.random() * 8}s`;
-      embers.appendChild(e);
-    }
-
-    // Мобильное меню
-    const navToggle = $("navToggle");
-    const navLinks = document.querySelector(".nav-links");
-
-    function setMenu(open) {
-      navLinks.classList.toggle("open", open);
-      navToggle.setAttribute("aria-expanded", open);
-      navToggle.textContent = open ? "✕" : "☰";
-    }
-
-    navToggle.addEventListener("click", () => {
-      setMenu(!navLinks.classList.contains("open"));
-    });
-
-    navLinks.addEventListener("click", (e) => {
-      if (e.target.tagName === "A") setMenu(false);
-    });
-
-    // Плавное появление блоков при прокрутке
-    const revealItems = document.querySelectorAll(".reveal");
-
-    if ("IntersectionObserver" in window) {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-            observer.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.12 });
-
-      revealItems.forEach((item) => observer.observe(item));
-    } else {
-      revealItems.forEach((item) => item.classList.add("visible"));
-    }
-
-    // Пасхалка: 5 нажатий на ник владельца
-    const EGG_TAG = "@ronifrag";
-    let eggClicks = 0;
-
-    $("staffList").addEventListener("click", (e) => {
-      const person = e.target.closest(".person");
-      if (!person || !person.textContent.includes(EGG_TAG)) return;
-
-      eggClicks++;
-      if (eggClicks >= 5) {
-        $("egg").classList.add("show");
-        eggClicks = 0;
+if ("IntersectionObserver" in window) {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("visible");
+        observer.unobserve(entry.target);
       }
     });
+  }, { threshold: 0.12 });
 
-    $("eggClose").addEventListener("click", () => $("egg").classList.remove("show"));
-    $("egg").addEventListener("click", (e) => {
-      if (e.target.id === "egg") $("egg").classList.remove("show");
+  revealItems.forEach((item) => observer.observe(item));
+} else {
+  revealItems.forEach((item) => item.classList.add("visible"));
+}
+
+// ==========================================================
+// Время по Берлину и таймеры
+// ==========================================================
+
+const berlinFmt = new Intl.DateTimeFormat("en-GB", {
+  timeZone: "Europe/Berlin",
+  year: "numeric", month: "numeric", day: "numeric",
+  hour: "numeric", minute: "numeric", second: "numeric",
+  hourCycle: "h23",
+});
+
+// На сколько миллисекунд берлинское время опережает UTC в этот момент
+function berlinOffset(ts) {
+  const p = {};
+  for (const part of berlinFmt.formatToParts(new Date(ts))) p[part.type] = +part.value;
+  const asUTC = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+  return asUTC - Math.floor(ts / 1000) * 1000;
+}
+
+// Ближайший момент (в будущем), когда в Берлине будет нужный день недели и время
+function nextBerlin(weekday, hour, minute, from = Date.now()) {
+  const wallNow = new Date(from + berlinOffset(from));   // берлинские часы, записанные как UTC
+
+  for (let add = 0; add <= 8; add++) {
+    const day = new Date(Date.UTC(
+      wallNow.getUTCFullYear(), wallNow.getUTCMonth(), wallNow.getUTCDate() + add
+    ));
+    if (day.getUTCDay() !== weekday) continue;
+
+    const wall = Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), hour, minute);
+    let ts = wall - berlinOffset(wall);
+    ts = wall - berlinOffset(ts);                         // уточняем на переходе лето/зима
+
+    if (ts > from) return ts;
+  }
+  return null;
+}
+
+function splitLeft(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return {
+    d: Math.floor(s / 86400),
+    h: Math.floor((s % 86400) / 3600),
+    m: Math.floor((s % 3600) / 60),
+    s: s % 60,
+  };
+}
+
+function countdownCells(ms) {
+  const t = splitLeft(ms);
+  const cell = (n, label) =>
+    `<div class="cd"><b>${String(n).padStart(2, "0")}</b><span>${label}</span></div>`;
+  return `<div class="cd-row">${cell(t.d, "дн")}${cell(t.h, "ч")}${cell(t.m, "мин")}${cell(t.s, "сек")}</div>`;
+}
+
+function updateTimers() {
+  const now = Date.now();
+
+  // ----- до чистки -----
+  const cw = CLEANUP.when;
+  const cleanAt = nextBerlin(cw.weekday, cw.hour, cw.minute, now);
+  const cleanBox = document.getElementById("cleanupCountdown");
+
+  if (cleanBox && cleanAt) {
+    const left = cleanAt - now;
+    const local = new Date(cleanAt).toLocaleString("ru-RU", {
+      weekday: "long", hour: "2-digit", minute: "2-digit",
     });
+    cleanBox.classList.toggle("soon", left < 3600 * 1000);
+    cleanBox.innerHTML = `
+      <div class="cd-title">${left < 3600 * 1000 ? "🔥 Чистка совсем скоро" : "До чистки осталось"}</div>
+      ${countdownCells(left)}
+      <div class="cd-note">По твоему времени: ${local}</div>`;
+  }
+
+  // ----- интерактив: идёт или ещё нет -----
+  const ip = INTERACTIVES.period;
+  const start = nextBerlin(ip.startWeekday, 0, 0, now);
+  const end = nextBerlin(ip.endWeekday, 0, 0, now);
+  const interBox = document.getElementById("interCountdown");
+
+  if (interBox && start && end) {
+    const active = end < start;
+    interBox.classList.toggle("live", active);
+    interBox.innerHTML = `
+      <div class="cd-title">${active ? "🟢 Интерактив идёт сейчас. До конца:" : "⏳ До следующего интерактива:"}</div>
+      ${countdownCells((active ? end : start) - now)}`;
+  }
+}
+
+updateTimers();
+setInterval(updateTimers, 1000);
+
+
+// ==========================================================
+// Копирование ника и пасхалка
+// ==========================================================
+
+function showToast(text) {
+  const toast = $("toast");
+  toast.textContent = text;
+  toast.classList.add("show");
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => toast.classList.remove("show"), 2200);
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (e) {
+    // Запасной способ для старых браузеров и открытия файла с диска
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.style.cssText = "position:fixed; opacity:0;";
+    document.body.appendChild(area);
+    area.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (err) { ok = false; }
+    area.remove();
+    return ok;
+  }
+}
+
+let eggClicks = 0;
+
+$("eggTitle").textContent = EASTER_EGG.title;
+$("eggText").textContent = EASTER_EGG.text;
+
+$("staffList").addEventListener("click", async (e) => {
+  const person = e.target.closest(".person");
+  if (!person) return;
+
+  const tag = person.dataset.tag;
+
+  if (tag) {
+    const ok = await copyText(tag);
+    showToast(ok ? `Ник ${tag} скопирован` : `Ник: ${tag}`);
+  }
+
+  if (tag && tag === EASTER_EGG.tag) {
+    eggClicks++;
+    if (eggClicks >= EASTER_EGG.clicks) {
+      $("egg").classList.add("show");
+      eggClicks = 0;
+    }
+  }
+});
+
+$("eggClose").addEventListener("click", () => $("egg").classList.remove("show"));
+$("egg").addEventListener("click", (e) => {
+  if (e.target.id === "egg") $("egg").classList.remove("show");
+});
+
   </script>
 </body>
 </html>
+
