@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Gra w kółko i krzyżyk</title>
+
+<h2>Kalkulator</h2>
+
+<table border="1" cellpadding="10">
+
+<tr>
+<td colspan="4">
+<input type="text" id="ekran" readonly size="24">
+</td>
+</tr>
+<tr>
+<td><button onclick="wpisz('7')">7</button></td>
+<td><button onclick="wpisz('8')">8</button></td>
+<td><button onclick="wpisz('9')">9</button></td>
+<td><button onclick="wpisz('/')">/</button></td>
+</tr>
+<tr>
+<td><button onclick="wpisz('4')">4</button></td>
+<td><button onclick="wpisz('5')">5</button></td>
+<td><button onclick="wpisz('6')">6</button></td>
+<td><button onclick="wpisz('*')">*</button></td>
+</tr>
+<tr>
+<td><button onclick="wpisz('1')">1</button></td>
+<td><button onclick="wpisz('2')">2</button></td>
+<td><button onclick="wpisz('3')">3</button></td>
+<td><button onclick="wpisz('-')">-</button></td>
+</tr>
+<tr>
+<td><button onclick="wpisz('0')">0</button></td>
+<td><button onclick="wpisz('.')">.</button></td>
+<td><button onclick="oblicz('=')">=</button></td>
+<td><button onclick="wpisz('+')">+</button></td>
+<td><button onclick="wpisz('/')">perwiastek</button></td>
+<td><button onclick="wpisz('')"></button></td>
+</tr>
+<tr>
+<td colspan="4">
+<button onclick="wyczysc()">Wyczysc (C)</button>
+</td>
+</tr>
+</table>
+
+<script>function wpisz(znak) {
+    document.getElementById("ekran").value += znak;
+}
+
+function oblicz() {
+    let ekran = document.getElementById("ekran");
+    try {
+        let tekst = ekran.value;
+        if (!/^[0-9+\-*/. ]+$/.test(tekst)) {
+            throw new Error("Bledne dzialanie");
+        }
+        let wynik = Function("return (" + tekst + ")")();
+        if (!Number.isFinite(wynik)) {
+            ekran.value = "Blad";
+        } else {
+            ekran.value = wynik;
+        }
+    } catch {
+        ekran.value = "Blad";
+    }
+}
+
+function wyczysc() {
+    document.getElementById("ekran").value = "";
+}</script>
+</body>
+</html>
