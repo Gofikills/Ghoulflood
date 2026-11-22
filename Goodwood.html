@@ -1,82 +1,154 @@
-# casino/roulette.py
-# Simple cat-themed roulette: colors + special symbols.
+# casino/slots.py
+# Cat Slots mini-game. Fully self-contained, returns results to main game.
 
 import random
+from enum import Enum, auto
 
-class CatRoulette:
+class SlotSymbol(Enum):
+    CAT = 0
+    FISH = 1
+    YARN = 2
+    MILK = 3
+    PAW = 4
+    LUCKY = 5
+    JACKPOT = 6
+
+SYMBOL_INFO = {
+    SlotSymbol.CAT:     {"name": "Кот",     "payout": 4,  "weight": 28},
+    SlotSymbol.FISH:    {"name": "Рыба",    "payout": 6,  "weight": 22},
+    SlotSymbol.YARN:    {"name": "Клубок",  "payout": 8,  "weight": 18},
+    SlotSymbol.MILK:    {"name": "Молоко",  "payout": 12, "weight": 12},
+    SlotSymbol.PAW:     {"name": "Лапки",   "payout": 18, "weight": 10},
+    SlotSymbol.LUCKY:   {"name": "Удача",   "payout": 40, "weight": 7},
+    SlotSymbol.JACKPOT: {"name": "ДЖЕКПОТ", "payout": 100,"weight": 3},
+}
+
+class SlotsGame:
     def __init__(self, resource_manager, time_system, collection):
         self.resources = resource_manager
         self.time = time_system
         self.collection = collection
         self.bet = 10
-        self.choice = None  # "red", "black", "green", "cat", "fish"
-        self.result = None
-        self.spinning = False
-        self.spin_time = 0.0
+        self.min_bet = 5
+        self.max_bet = 100
+        self.reels = [[], [], []]
+        self.result = None  # last result dict
+        self.is_spinning = False
+        self.spin_progress = 0.0
+        self._init_reels()
 
-        # Wheel: 0 = green/jackpot, 1-7 red, 8-14 black, specials mixed
-        self.wheel = (
-            ["green"] +
-            ["red"] * 6 +
-            ["black"] * 6 +
-            ["cat"] * 2 +
-            ["fish"] * 2
-        )
+    def _init_reels(self):
+        for i in range(3):
+            self.reels[i] = [self._weighted_symbol() for _ in range(5)]
 
-    def can_bet(self) -> bool:
-        return not self.spinning and self.resources.coins >= self.bet
+    def _weighted_symbol(self) -> SlotSymbol:
+        weights = [SYMBOL_INFO[s]["weight"] for s in SlotSymbol]
+        return random.choices(list(SlotSymbol), weights=weights, k=1)[0]
 
-    def place_bet(self, choice: str) -> bool:
-        if not self.can_bet():
+    def set_bet(self, amount: int):
+        self.bet = max(self.min_bet, min(self.max_bet, amount))
+
+    def can_spin(self) -> bool:
+        return not self.is_spinning and self.resources.coins >= self.bet
+
+    def start_spin(self) -> bool:
+        if not self.can_spin():
             return False
-        if choice not in ("red", "black", "green", "cat", "fish"):
-            return False
-        self.choice = choice
         self.resources.spend_coins(self.bet)
+        self.resources.inc_stat("spins_total")
         self.resources.inc_stat("games_played")
         if self.time.is_night():
             self.resources.inc_stat("night_games")
-        self.spinning = True
-        self.spin_time = 0.0
+
+        self.is_spinning = True
+        self.spin_progress = 0.0
         self.result = None
+
+        # Pre-generate final symbols (with ability modifiers)
+        abilities = self.collection.get_active_abilities()
+        bonus_chance = abilities.get("bonus_event_chance", 0.0)
+        cosmic = abilities.get("cosmic_jackpot_chance", 0.0)
+
+        finals = []
+        for _ in range(3):
+            # Slight luck from time + abilities
+            if random.random() < cosmic:
+                finals.append(SlotSymbol.JACKPOT)
+            else:
+                finals.append(self._weighted_symbol())
+
+        # Force more interesting sometimes
+        if random.random() < 0.08 + bonus_chance:
+            # Bonus event: force two matching
+            s = self._weighted_symbol()
+            finals[0] = s
+            finals[1] = s
+
+        self._final_symbols = finals
         return True
 
     def update(self, dt: float):
-        if not self.spinning:
+        if not self.is_spinning:
             return
-        self.spin_time += dt
-        if self.spin_time >= 2.2:
-            self.spinning = False
+        self.spin_progress += dt * 1.8  # speed
+        if self.spin_progress >= 1.0:
+            self.spin_progress = 1.0
+            self.is_spinning = False
             self._resolve()
 
     def _resolve(self):
-        landed = random.choice(self.wheel)
-        payout = 0
-        mult = self.time.get_bonus_multiplier()
+        symbols = self._final_symbols
+        # Update reels visual final
+        for i, s in enumerate(symbols):
+            self.reels[i] = [self._weighted_symbol() for _ in range(2)] + [s] + [self._weighted_symbol() for _ in range(2)]
 
-        if landed == self.choice:
-            if landed == "green":
-                payout = int(self.bet * 14 * mult)
-            elif landed in ("cat", "fish"):
-                payout = int(self.bet * 6 * mult)
+        mult = self.time.get_bonus_multiplier()
+        abilities = self.collection.get_active_abilities()
+
+        payout = 0
+        is_jackpot = False
+        msg = ""
+
+        # 3 of a kind
+        if symbols[0] == symbols[1] == symbols[2]:
+            base = SYMBOL_INFO[symbols[0]]["payout"]
+            payout = int(base * self.bet * mult)
+            if symbols[0] == SlotSymbol.JACKPOT:
+                is_jackpot = True
+                self.resources.inc_stat("jackpots")
+                payout = int(payout * 1.5)  # extra
+                msg = "🐱 ДЖЕКПОТ!!! "
             else:
-                payout = int(self.bet * 2 * mult)
+                msg = f"Три {SYMBOL_INFO[symbols[0]]['name']}! "
+        # 2 of a kind
+        elif symbols[0] == symbols[1] or symbols[1] == symbols[2] or symbols[0] == symbols[2]:
+            match = symbols[1] if symbols[0] == symbols[1] or symbols[1] == symbols[2] else symbols[0]
+            base = SYMBOL_INFO[match]["payout"]
+            payout = int(base * self.bet * 0.35 * mult)
+            msg = f"Два {SYMBOL_INFO[match]['name']}! "
 
         if payout > 0:
-            self.resources.add_coins(payout, "roulette")
-            self.resources.inc_stat("roulette_wins")
-            for cat in self.collection.get_owned()[:1]:
-                cat.add_friendship(1)
+            self.resources.add_coins(payout, "slots")
+            # Friendship for playing
+            for cat in self.collection.get_owned()[:2]:
+                cat.add_friendship(1.5)
+            msg += f"+{payout} монет"
+        else:
+            msg = "Не повезло... Попробуй ещё!"
 
         self.result = {
-            "landed": landed,
-            "choice": self.choice,
+            "symbols": symbols,
             "payout": payout,
-            "won": payout > 0,
-            "message": f"Выпало: {landed.upper()}! +{payout}" if payout > 0 else f"Выпало: {landed}. Не угадал.",
+            "is_jackpot": is_jackpot,
+            "message": msg,
+            "bet": self.bet,
         }
 
-    def get_display_wheel_position(self) -> float:
-        if self.spinning:
-            return (self.spin_time * 8) % 1.0
-        return 0.0
+    def get_visible_symbols(self):
+        """For rendering: current center symbols (or spinning fake)."""
+        if self.is_spinning:
+            # Fake spinning
+            return [self._weighted_symbol() for _ in range(3)]
+        if self.result:
+            return self.result["symbols"]
+        return [self.reels[i][2] for i in range(3)]
