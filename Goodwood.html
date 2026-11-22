@@ -1,129 +1,85 @@
 
-# core/time_system.py
-# Day-night cycle that changes visuals, music and some bonuses.
+# core/resources.py
+# Central resource management for CATINO.
 
-from enum import Enum, auto
-import math
+class ResourceManager:
+    def __init__(self):
+        self.coins = 500
+        self.catnip = 0
+        self.fish = 10
+        self.gems = 0
 
-
-class TimeOfDay(Enum):
-    MORNING = auto()   # 6-10
-    DAY = auto()       # 10-17
-    EVENING = auto()   # 17-21
-    NIGHT = auto()     # 21-6
-
-
-class TimeSystem:
-    """
-    Manages in-game time.
-    One full day = day_length_seconds real seconds.
-    Visuals, ambient, bonuses change with period.
-    """
-
-    def __init__(self, day_length_seconds: float = 180.0):
-        self.day_length = day_length_seconds
-        self.time = 0.0
-        self.paused = False
-
-        # Visual palettes for each period
-        self.palettes = {
-            TimeOfDay.MORNING: {
-                "sky_top": (255, 180, 120),
-                "sky_bottom": (255, 220, 180),
-                "floor": (60, 50, 45),
-                "accent": (255, 140, 80),
-                "neon": 0.3,
-                "light": 0.85,
-                "name": "Утро",
-                "music_mood": "calm",
-            },
-
-            TimeOfDay.DAY: {
-                "sky_top": (120, 180, 255),
-                "sky_bottom": (200, 230, 255),
-                "floor": (50, 55, 60),
-                "accent": (255, 200, 50),
-                "neon": 0.15,
-                "light": 1.0,
-                "name": "День",
-                "music_mood": "upbeat",
-            },
-
-            TimeOfDay.EVENING: {
-                "sky_top": (255, 100, 80),
-                "sky_bottom": (180, 60, 100),
-                "floor": (40, 30, 45),
-                "accent": (255, 80, 120),
-                "neon": 0.7,
-                "light": 0.6,
-                "name": "Вечер",
-                "music_mood": "mellow",
-            },
-
-            TimeOfDay.NIGHT: {
-                "sky_top": (15, 10, 40),
-                "sky_bottom": (30, 20, 60),
-                "floor": (15, 12, 25),
-                "accent": (180, 80, 255),
-                "neon": 1.0,
-                "light": 0.35,
-                "name": "Ночь",
-                "music_mood": "night",
-            },
+        self.stats = {
+            "spins_total": 0,
+            "jackpots": 0,
+            "poker_wins": 0,
+            "roulette_wins": 0,
+            "reaction_highscore": 0,
+            "night_games": 0,
+            "total_coins_earned": 0,
+            "total_coins_spent": 0,
+            "cats_unlocked": 1,
+            "games_played": 0,
         }
 
-    def update(self, dt: float):
-        if self.paused:
+    def add_coins(self, amount: int, source: str = "unknown"):
+        if amount <= 0:
             return
 
-        self.time = (self.time + dt / self.day_length) % 1.0
+        self.coins += amount
+        self.stats["total_coins_earned"] += amount
 
-    def get_period(self) -> TimeOfDay:
-        t = self.time
+    def spend_coins(self, amount: int) -> bool:
+        if amount < 0 or self.coins < amount:
+            return False
 
-        if 0.25 <= t < 0.42:
-            return TimeOfDay.MORNING
+        self.coins -= amount
+        self.stats["total_coins_spent"] += amount
+        return True
 
-        elif 0.42 <= t < 0.70:
-            return TimeOfDay.DAY
+    def add_fish(self, amount: int = 1):
+        if amount > 0:
+            self.fish += amount
 
-        elif 0.70 <= t < 0.85:
-            return TimeOfDay.EVENING
+    def spend_fish(self, amount: int = 1) -> bool:
+        if amount < 0 or self.fish < amount:
+            return False
 
-        else:
-            return TimeOfDay.NIGHT
+        self.fish -= amount
+        return True
 
-    def get_palette(self) -> dict:
-        return self.palettes[self.get_period()]
+    def add_catnip(self, amount: int = 1):
+        if amount > 0:
+            self.catnip += amount
 
-    def get_hour_string(self) -> str:
-        hour = int(self.time * 24) % 24
-        minute = int((self.time * 24 * 60) % 60)
+    def add_gems(self, amount: int = 1):
+        if amount > 0:
+            self.gems += amount
 
-        return f"{hour:02d}:{minute:02d}"
+    def inc_stat(self, key: str, value: int = 1):
+        if key not in self.stats:
+            self.stats[key] = 0
 
-    def is_night(self) -> bool:
-        return self.get_period() == TimeOfDay.NIGHT
+        self.stats[key] += value
 
-    def is_day(self) -> bool:
-        return self.get_period() in (
-            TimeOfDay.MORNING,
-            TimeOfDay.DAY
-        )
+    def set_stat(self, key: str, value):
+        self.stats[key] = value
 
-    def get_bonus_multiplier(self) -> float:
-        """Night gives slight luck bonus, day gives energy etc."""
+    def get_stat(self, key: str, default=0):
+        return self.stats.get(key, default)
 
-        period = self.get_period()
+    def to_dict(self) -> dict:
+        return {
+            "coins": self.coins,
+            "catnip": self.catnip,
+            "fish": self.fish,
+            "gems": self.gems,
+            "stats": self.stats.copy(),
+        }
 
-        if period == TimeOfDay.NIGHT:
-            return 1.12
-
-        if period == TimeOfDay.EVENING:
-            return 1.05
-
-        return 1.0
-
-    def get_normalized_time(self) -> float:
-        return self.time
-
+    def load_dict(self, data: dict):
+        self.coins = data.get("coins", 500)
+        self.catnip = data.get("catnip", 0)
+        self.fish = data.get("fish", 10)
+        self.gems = data.get("gems", 0)
+        self.stats.update(data.get("stats", {}))
