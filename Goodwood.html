@@ -1,134 +1,90 @@
-from enum import Enum, auto
+from data.achievements import ACHIEVEMENTS, get_achievement
+from data.cats import Rarity, get_all_cats
 
-class Rarity(Enum):
-    COMMON = 1
-    UNCOMMON = 2
-    RARE = 3
-    EPIC = 4
-    LEGENDARY = 5
+class AchievementSystem:
+    def __init__(self, resource_manager, cat_collection, empire):
+        self.resources = resource_manager
+        self.collection = cat_collection
+        self.empire = empire
+        self.unlocked = set()  # ids
+        self.just_unlocked = []  # for UI popup this frame
 
-class CatPersonality(Enum):
-    PLAYFUL = auto()
-    MYSTERIOUS = auto()
-    ROYAL = auto()
-    COSMIC = auto()
-    LAZY = auto()
-    CURIOUS = auto()
-    BRAVE = auto()
+    def check_all(self):
+        """Call periodically or after important events."""
+        self.just_unlocked.clear()
+        for aid, ach in ACHIEVEMENTS.items():
+            if aid in self.unlocked:
+                continue
+            if self._check_condition(ach["condition"]):
+                self._unlock(aid, ach)
 
-CATS = {
-    "ryzhik": {
-        "id": "ryzhik",
-        "name": "Рыжик",
-        "rarity": Rarity.COMMON,
-        "personality": CatPersonality.PLAYFUL,
-        "description": "Рыжий весельчак. Обожает дневные бонусы.",
-        "ability": {
-            "id": "daily_bonus",
-            "name": "Солнечный бонус",
-            "desc": "+15% к ежедневным наградам",
-            "effect": {"daily_reward_mult": 1.15}
-        },
-        "base_stats": {"charm": 5, "luck": 4, "energy": 6},
-        "color_primary": (255, 159, 28),
-        "color_secondary": (255, 191, 105),
-        "unlock_cost": 0,
-        "friendship_max": 100,
-    },
-    "ten": {
-        "id": "ten",
-        "name": "Тень",
-        "rarity": Rarity.UNCOMMON,
-        "personality": CatPersonality.MYSTERIOUS,
-        "description": "Чёрный кот. Притягивает бонусные события.",
-        "ability": {
-            "id": "bonus_chance",
-            "name": "Теневой шанс",
-            "desc": "+20% шанс на бонусные события",
-            "effect": {"bonus_event_chance": 0.20}
-        },
-        "base_stats": {"charm": 4, "luck": 8, "energy": 5},
-        "color_primary": (30, 30, 40),
-        "color_secondary": (80, 80, 100),
-        "unlock_cost": 250,
-        "friendship_max": 120,
-    },
-    "korol": {
-        "id": "korol",
-        "name": "Король",
-        "rarity": Rarity.RARE,
-        "personality": CatPersonality.ROYAL,
-        "description": "Величественный кот. Даёт больше монет за задания.",
-        "ability": {
-            "id": "quest_coins",
-            "name": "Королевская дань",
-            "desc": "+25% монет за задания",
-            "effect": {"quest_reward_mult": 1.25}
-        },
-        "base_stats": {"charm": 9, "luck": 5, "energy": 4},
-        "color_primary": (255, 215, 0),
-        "color_secondary": (218, 165, 32),
-        "unlock_cost": 600,
-        "friendship_max": 150,
-    },
-    "kosmos": {
-        "id": "kosmos",
-        "name": "Космос",
-        "rarity": Rarity.EPIC,
-        "personality": CatPersonality.COSMIC,
-        "description": "Кот из галактик. Открывает особые эффекты.",
-        "ability": {
-            "id": "cosmic_fx",
-            "name": "Звёздная пыль",
-            "desc": "Космические эффекты + шанс джекпота",
-            "effect": {"visual_fx": "cosmic", "cosmic_jackpot_chance": 0.05}
-        },
-        "base_stats": {"charm": 7, "luck": 9, "energy": 7},
-        "color_primary": (100, 50, 200),
-        "color_secondary": (180, 100, 255),
-        "unlock_cost": 1500,
-        "friendship_max": 200,
-    },
-    "snegok": {
-        "id": "snegok",
-        "name": "Снежок",
-        "rarity": Rarity.COMMON,
-        "personality": CatPersonality.LAZY,
-        "description": "Белый лентяй. Даёт пассивный доход.",
-        "ability": {
-            "id": "passive_income",
-            "name": "Сонный доход",
-            "desc": "Пассивный доход",
-            "effect": {"passive_income": 2}
-        },
-        "base_stats": {"charm": 6, "luck": 3, "energy": 2},
-        "color_primary": (245, 245, 250),
-        "color_secondary": (200, 200, 220),
-        "unlock_cost": 180,
-        "friendship_max": 90,
-    },
-    "molniya": {
-        "id": "molniya",
-        "name": "Молния",
-        "rarity": Rarity.RARE,
-        "personality": CatPersonality.BRAVE,
-        "description": "Быстрый кот. Улучшает игру на реакцию.",
-        "ability": {
-            "id": "reaction_boost",
-            "name": "Молниеносная реакция",
-            "desc": "+15% очков в Котоавтомате",
-            "effect": {"reaction_score_mult": 1.15}
-        },
-        "base_stats": {"charm": 5, "luck": 6, "energy": 10},
-        "color_primary": (255, 80, 80),
-        "color_secondary": (255, 180, 50),
-        "unlock_cost": 800,
-        "friendship_max": 130,
-    },
-}
+    def _check_condition(self, cond: dict) -> bool:
+        t = cond.get("type")
+        if t == "stat":
+            val = self.resources.get_stat(cond["key"], 0)
+            op = cond.get("op", ">=")
+            target = cond["value"]
+            if op == ">=":
+                return val >= target
+            if op == ">":
+                return val > target
+            if op == "==":
+                return val == target
+            return False
 
-def get_cat_data(cat_id: str) -> dict:
-    return CATS.get(cat_id)
+        if t == "collection_count":
+            owned = sum(1 for c in self.collection.cats.values() if c.owned)
+            return owned >= cond["value"]
 
-def get_all_cats() -> dict:
-    return CATS
+        if t == "rarity_complete":
+            rarity_name = cond["rarity"]
+            rarity = Rarity[rarity_name]
+            all_of = [c for c in get_all_cats().values() if c["rarity"] == rarity]
+            owned_of = [c for c in self.collection.cats.values()
+                        if c.owned and c.rarity == rarity]
+            return len(owned_of) >= len(all_of)
+
+        if t == "max_friendship":
+            max_f = max((c.friendship for c in self.collection.cats.values() if c.owned), default=0)
+            return max_f >= cond["value"]
+
+        if t == "empire_level":
+            return self.empire.level >= cond["value"]
+
+        if t == "secret":
+            return self.resources.get_stat(cond["key"], False)
+
+        return False
+
+    def _unlock(self, aid: str, ach: dict):
+        self.unlocked.add(aid)
+        self.just_unlocked.append(ach)
+        # Give rewards
+        reward = ach.get("reward", {})
+        if "coins" in reward:
+            self.resources.add_coins(reward["coins"], "achievement")
+        if "friendship_all" in reward:
+            for cat in self.collection.cats.values():
+                if cat.owned:
+                    cat.add_friendship(reward["friendship_all"])
+        if "unlock_cat" in reward:
+            self.collection.unlock_cat(reward["unlock_cat"])
+
+    def is_unlocked(self, aid: str) -> bool:
+        return aid in self.unlocked
+
+    def get_progress_text(self, aid: str) -> str:
+        ach = get_achievement(aid)
+        if not ach:
+            return ""
+        cond = ach["condition"]
+        if cond["type"] == "stat":
+            current = self.resources.get_stat(cond["key"], 0)
+            return f"{current}/{cond['value']}"
+        return ""
+
+    def to_dict(self) -> dict:
+        return {"unlocked": list(self.unlocked)}
+
+    def load_dict(self, data: dict):
+        self.unlocked = set(data.get("unlocked", []))
