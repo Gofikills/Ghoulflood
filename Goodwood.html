@@ -1,100 +1,108 @@
 
-# core/audio.py
-# Sound effects and audio management for CATINO.
+# entities/cat.py
+# Runtime cat instance with friendship, level and state.
 
-import pygame
-import numpy as np
+from data.cats import get_cat_data, Rarity
 
 
-class AudioManager:
-    def __init__(self):
-        self.enabled = True
-        self.volume = 0.4
-        self.music_mood = None
-        self.current_music = None
-        self.sfx = {}
+class Cat:
+    def __init__(self, cat_id: str, owned: bool = False):
+        data = get_cat_data(cat_id)
 
-        try:
-            if not pygame.mixer.get_init():
-                pygame.mixer.init(
-                    frequency=22050,
-                    size=-16,
-                    channels=2,
-                    buffer=512
-                )
+        if not data:
+            raise ValueError(f"Unknown cat: {cat_id}")
 
-            self._generate_sfx()
+        self.id = cat_id
+        self.name = data["name"]
+        self.rarity = data["rarity"]
+        self.personality = data["personality"]
+        self.description = data["description"]
+        self.ability = data["ability"]
 
-        except pygame.error as error:
-            print(f"Audio initialization error: {error}")
-            self.enabled = False
+        self.base_stats = data["base_stats"].copy()
 
-    def _generate_sfx(self):
+        self.color_primary = data["color_primary"]
+        self.color_secondary = data["color_secondary"]
 
-        def tone(freq, duration, vol=0.3, wave="square"):
-            sample_rate = 22050
-            n = int(sample_rate * duration)
+        self.unlock_cost = data["unlock_cost"]
+        self.friendship_max = data["friendship_max"]
 
-            t = np.linspace(0, duration, n, False)
+        self.owned = owned
+        self.friendship = 0
+        self.level = 1
+        self.assigned_room = None
+        self.experience = 0
 
-            if wave == "square":
-                wave_data = np.sign(
-                    np.sin(2 * np.pi * freq * t)
-                )
+    def add_friendship(self, amount: float) -> bool:
+        """Returns True if friendship reaches a new milestone."""
 
-            elif wave == "saw":
-                wave_data = 2 * (
-                    t * freq - np.floor(0.5 + t * freq)
-                )
+        if not self.owned:
+            return False
 
+        old = self.friendship
+
+        self.friendship = min(
+            self.friendship_max,
+            self.friendship + amount
+        )
+
+        return int(old // 25) < int(self.friendship // 25)
+
+    def get_ability_effect(self) -> dict:
+        if not self.owned or self.friendship < 10:
+            return {}
+
+        base = self.ability.get("effect", {}).copy()
+
+        scale = 1.0 + (
+            self.friendship / self.friendship_max
+        ) * 0.3
+
+        scaled = {}
+
+        for key, value in base.items():
+            if (
+                isinstance(value, (int, float))
+                and key != "visual_fx"
+            ):
+                if isinstance(value, float):
+                    scaled[key] = value * scale
+                else:
+                    scaled[key] = int(value * scale)
             else:
-                wave_data = np.sin(2 * np.pi * freq * t)
+                scaled[key] = value
 
-            envelope = np.linspace(1, 0, n)
-            wave_data = wave_data * envelope * vol
+        return scaled
 
-            stereo = np.column_stack(
-                (wave_data, wave_data)
-            )
+    def get_display_rarity(self) -> str:
+        return {
+            Rarity.COMMON: "Обычный",
+            Rarity.UNCOMMON: "Необычный",
+            Rarity.RARE: "Редкий",
+            Rarity.EPIC: "Эпический",
+            Rarity.LEGENDARY: "Легендарный",
+        }.get(self.rarity, "?")
 
-            stereo = (stereo * 32767).astype(np.int16)
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "owned": self.owned,
+            "friendship": self.friendship,
+            "level": self.level,
+            "experience": self.experience,
+            "assigned_room": self.assigned_room,
+        }
 
-            return pygame.sndarray.make_sound(stereo)
+    @classmethod
+    def from_dict(cls, data: dict) -> "Cat":
+        cat = cls(
+            data["id"],
+            owned=data.get("owned", False)
+        )
 
-        self.sfx["click"] = tone(600, 0.05, 0.2)
-        self.sfx["spin"] = tone(200, 0.08, 0.15, "saw")
-        self.sfx["win"] = tone(520, 0.12, 0.25)
-        self.sfx["win2"] = tone(780, 0.15, 0.25)
-        self.sfx["lose"] = tone(140, 0.2, 0.2, "saw")
-        self.sfx["jackpot"] = tone(880, 0.3, 0.3)
-        self.sfx["feed"] = tone(400, 0.1, 0.2)
-        self.sfx["unlock"] = tone(660, 0.2, 0.3)
+        cat.friendship = data.get("friendship", 0)
+        cat.level = data.get("level", 1)
+        cat.experience = data.get("experience", 0)
+        cat.assigned_room = data.get("assigned_room")
 
-    def play_sfx(self, name: str):
-        if not self.enabled:
-            return
-
-        sound = self.sfx.get(name)
-
-        if sound:
-            sound.set_volume(self.volume)
-            sound.play()
-
-    def set_volume(self, volume: float):
-        self.volume = max(0.0, min(1.0, volume))
-
-    def set_enabled(self, enabled: bool):
-        self.enabled = enabled
-
-        if not enabled:
-            self.stop_all()
-
-    def set_mood(self, mood: str):
-        if mood == self.music_mood:
-            return
-
-        self.music_mood = mood
-
-    def stop_all(self):
-        if pygame.mixer.get_init():
-            pygame.mixer.stop()
+        return cat
