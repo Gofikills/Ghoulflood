@@ -1,151 +1,658 @@
+# core/game.py
+# Main game loop, state machine, rendering. Architecture ready for expansion.
 
-# systems/achievement_system.py
-# Checks conditions against current game state.
+import pygame
+import sys
+import os
+import json
+from pathlib import Path
 
-from data.achievements import ACHIEVEMENTS, get_achievement
-from data.cats import Rarity, get_all_cats
+# Add project root
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from core.time_system import TimeSystem, TimeOfDay
+from core.resources import ResourceManager
+from core.audio import AudioManager
+from systems.collection import CatCollection
+from systems.empire import Empire
+from systems.achievement_system import AchievementSystem
+from casino.slots import SlotsGame, SYMBOL_INFO, SlotSymbol
+from casino.poker import CatPoker
+from casino.roulette import CatRoulette
+from casino.reaction import CatReaction
 
-class AchievementSystem:
-    def __init__(self, resource_manager, cat_collection, empire):
-        self.resources = resource_manager
-        self.collection = cat_collection
-        self.empire = empire
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GOLD = (255, 215, 0)
+PINK = (255, 45, 149)
+CYAN = (0, 245, 212)
+PURPLE = (155, 93, 229)
 
-        self.unlocked = set()
-        self.just_unlocked = []
+class GameState:
+    HUB = "hub"
+    CASINO = "casino"
+    SLOTS = "slots"
+    POKER = "poker"
+    ROULETTE = "roulette"
+    REACTION = "reaction"
+    COLLECTION = "collection"
+    ACHIEVEMENTS = "achievements"
+    EMPIRE = "empire"
 
-    def check_all(self):
-        """Call periodically or after important events."""
+class CATINO:
+    def __init__(self):
+        pygame.init()
+        pygame.display.set_caption("CATINO — Кошачья Империя")
+        self.screen = pygame.display.set_mode((960, 640))
+        self.clock = pygame.time.Clock()
+        self.running = True
+        self.dt = 0.0
 
-        self.just_unlocked.clear()
+        # Fonts (pixel-ish)
+        self.font_lg = pygame.font.SysFont("consolas", 28, bold=True)
+        self.font_md = pygame.font.SysFont("consolas", 20)
+        self.font_sm = pygame.font.SysFont("consolas", 16)
+        self.font_xs = pygame.font.SysFont("consolas", 13)
 
-        for aid, ach in ACHIEVEMENTS.items():
-            if aid in self.unlocked:
-                continue
+        # Systems
+        self.time = TimeSystem(day_length_seconds=120)  # 2 min = full day for demo
+        self.resources = ResourceManager()
+        self.collection = CatCollection()
+        self.empire = Empire()
+        self.achievements = AchievementSystem(self.resources, self.collection, self.empire)
+        self.audio = AudioManager()
 
-            if self._check_condition(ach["condition"]):
-                self._unlock(aid, ach)
+        # Mini-games
+        self.slots = SlotsGame(self.resources, self.time, self.collection)
+        self.poker = CatPoker(self.resources, self.time, self.collection)
+        self.roulette = CatRoulette(self.resources, self.time, self.collection)
+        self.reaction = CatReaction(self.resources, self.time, self.collection)
 
-    def _check_condition(self, cond: dict) -> bool:
-        condition_type = cond.get("type")
+        self.state = GameState.HUB
+        self.message = ""
+        self.message_timer = 0.0
+        self.selected_cat = "ryzhik"
+        self.particles = []
 
-        if condition_type == "stat":
-            value = self.resources.get_stat(
-                cond["key"], 0
-            )
+        # Simple save path
+        self.save_path = Path(__file__).parent.parent / "save.json"
+        self.load()
 
-            operator = cond.get("op", ">=")
-            target = cond["value"]
+    def show_msg(self, text: str, duration: float = 2.5):
+        self.message = text
+        self.message_timer = duration
 
-            if operator == ">=":
-                return value >= target
-
-            if operator == ">":
-                return value > target
-
-            if operator == "==":
-                return value == target
-
-            return False
-
-        if condition_type == "collection_count":
-            owned = sum(
-                1 for cat in self.collection.cats.values()
-                if cat.owned
-            )
-
-            return owned >= cond["value"]
-
-        if condition_type == "rarity_complete":
-            rarity_name = cond["rarity"]
-            rarity = Rarity[rarity_name]
-
-            all_of = [
-                cat for cat in get_all_cats().values()
-                if cat["rarity"] == rarity
-            ]
-
-            owned_of = [
-                cat for cat in self.collection.cats.values()
-                if cat.owned and cat.rarity == rarity
-            ]
-
-            return len(owned_of) >= len(all_of)
-
-        if condition_type == "max_friendship":
-            max_friendship = max(
-                (
-                    cat.friendship
-                    for cat in self.collection.cats.values()
-                    if cat.owned
-                ),
-                default=0
-            )
-
-            return max_friendship >= cond["value"]
-
-        if condition_type == "empire_level":
-            return self.empire.level >= cond["value"]
-
-        if condition_type == "secret":
-            return self.resources.get_stat(
-                cond["key"], False
-            )
-
-        return False
-
-    def _unlock(self, aid: str, ach: dict):
-        self.unlocked.add(aid)
-        self.just_unlocked.append(ach)
-
-        # Give rewards
-        reward = ach.get("reward", {})
-
-        if "coins" in reward:
-            self.resources.add_coins(
-                reward["coins"],
-                "achievement"
-            )
-
-        if "friendship_all" in reward:
-            for cat in self.collection.cats.values():
-                if cat.owned:
-                    cat.add_friendship(
-                        reward["friendship_all"]
-                    )
-
-        if "unlock_cat" in reward:
-            self.collection.unlock_cat(
-                reward["unlock_cat"]
-            )
-
-    def is_unlocked(self, aid: str) -> bool:
-        return aid in self.unlocked
-
-    def get_progress_text(self, aid: str) -> str:
-        achievement = get_achievement(aid)
-
-        if not achievement:
-            return ""
-
-        condition = achievement["condition"]
-
-        if condition["type"] == "stat":
-            current = self.resources.get_stat(
-                condition["key"], 0
-            )
-
-            return f"{current}/{condition['value']}"
-
-        return ""
-
-    def to_dict(self) -> dict:
-        return {
-            "unlocked": list(self.unlocked)
+    def save(self):
+        data = {
+            "resources": self.resources.to_dict(),
+            "collection": self.collection.to_dict(),
+            "empire": self.empire.to_dict(),
+            "achievements": self.achievements.to_dict(),
+            "time": self.time.time,
         }
+        try:
+            with open(self.save_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print("Save failed:", e)
 
-    def load_dict(self, data: dict):
-        self.unlocked = set(
-            data.get("unlocked", [])
-        )
+    def load(self):
+        if not self.save_path.exists():
+            return
+        try:
+            with open(self.save_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            self.resources.load_dict(data.get("resources", {}))
+            self.collection.load_dict(data.get("collection", {}))
+            self.empire.load_dict(data.get("empire", {}))
+            self.achievements.load_dict(data.get("achievements", {}))
+            self.time.time = data.get("time", 0.0)
+        except Exception as e:
+            print("Load failed:", e)
+
+    # ---------- UPDATE ----------
+    def update(self):
+        self.time.update(self.dt)
+        self.message_timer = max(0, self.message_timer - self.dt)
+
+        # Mood music
+        palette = self.time.get_palette()
+        self.audio.set_mood(palette["music_mood"])
+
+        if self.state == GameState.SLOTS:
+            self.slots.update(self.dt)
+            if self.slots.result and not self.slots.is_spinning:
+                # already resolved inside
+                pass
+        elif self.state == GameState.ROULETTE:
+            self.roulette.update(self.dt)
+        elif self.state == GameState.REACTION:
+            # mouse control
+            mx, _ = pygame.mouse.get_pos()
+            self.reaction.update(self.dt, mx / 960)
+
+        # Achievements check
+        self.achievements.check_all()
+        if self.achievements.just_unlocked:
+            for ach in self.achievements.just_unlocked:
+                self.show_msg(f"🏆 Достижение: {ach['name']}! +{ach.get('reward', {}).get('coins', 0)}")
+                self.audio.play_sfx("unlock")
+                self.empire.add_xp(30)
+
+        # Passive income every ~10 sec
+        # (simple)
+
+    # ---------- INPUT ----------
+    def handle_event(self, event):
+        if event.type == pygame.QUIT:
+            self.running = False
+            self.save()
+            return
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                if self.state != GameState.HUB:
+                    self.state = GameState.HUB
+                else:
+                    self.running = False
+                    self.save()
+            if event.key == pygame.K_s:
+                self.save()
+                self.show_msg("Игра сохранена")
+
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            self._handle_click(event.pos)
+
+    def _handle_click(self, pos):
+        x, y = pos
+        self.audio.play_sfx("click")
+
+        if self.state == GameState.HUB:
+            # Buttons
+            if 50 < x < 250 and 180 < y < 230:
+                self.state = GameState.CASINO
+            elif 50 < x < 250 and 250 < y < 300:
+                self.state = GameState.COLLECTION
+            elif 50 < x < 250 and 320 < y < 370:
+                self.state = GameState.EMPIRE
+            elif 50 < x < 250 and 390 < y < 440:
+                self.state = GameState.ACHIEVEMENTS
+            elif 700 < x < 900 and 550 < y < 600:
+                self.save()
+                self.show_msg("Сохранено!")
+
+        elif self.state == GameState.CASINO:
+            if 80 < x < 280 and 160 < y < 220:
+                self.state = GameState.SLOTS
+            elif 80 < x < 280 and 240 < y < 300:
+                self.state = GameState.POKER
+            elif 80 < x < 280 and 320 < y < 380:
+                self.state = GameState.ROULETTE
+            elif 80 < x < 280 and 400 < y < 460:
+                self.state = GameState.REACTION
+            elif 50 < x < 200 and 550 < y < 600:
+                self.state = GameState.HUB
+
+        elif self.state == GameState.SLOTS:
+            if 400 < x < 560 and 520 < y < 570 and self.slots.can_spin():
+                if self.slots.start_spin():
+                    self.audio.play_sfx("spin")
+            if 300 < x < 360 and 520 < y < 570:
+                self.slots.set_bet(self.slots.bet - 5)
+            if 600 < x < 660 and 520 < y < 570:
+                self.slots.set_bet(self.slots.bet + 5)
+            if 50 < x < 180 and 550 < y < 600:
+                self.state = GameState.CASINO
+
+        elif self.state == GameState.POKER:
+            if self.poker.phase == "bet" and 400 < x < 560 and 500 < y < 550:
+                if self.poker.deal():
+                    self.audio.play_sfx("spin")
+            elif self.poker.phase == "dealt":
+                # Hold cards
+                for i in range(5):
+                    cx = 180 + i * 120
+                    if cx < x < cx + 100 and 280 < y < 420:
+                        self.poker.toggle_hold(i)
+                if 400 < x < 560 and 500 < y < 550:
+                    self.poker.draw()
+                    if self.poker.result and self.poker.result["payout"] > 0:
+                        self.audio.play_sfx("win")
+                    else:
+                        self.audio.play_sfx("lose")
+            elif self.poker.phase == "result" and 400 < x < 560 and 500 < y < 550:
+                self.poker.new_round()
+            if 50 < x < 180 and 550 < y < 600:
+                self.state = GameState.CASINO
+                self.poker.new_round()
+
+        elif self.state == GameState.ROULETTE:
+            choices = [("red", 100), ("black", 220), ("green", 340), ("cat", 460), ("fish", 580)]
+            for name, cx in choices:
+                if cx < x < cx + 100 and 400 < y < 460:
+                    if self.roulette.place_bet(name):
+                        self.audio.play_sfx("spin")
+            if 50 < x < 180 and 550 < y < 600:
+                self.state = GameState.CASINO
+
+        elif self.state == GameState.REACTION:
+            if not self.reaction.active and 400 < x < 560 and 500 < y < 550:
+                if self.reaction.start():
+                    self.audio.play_sfx("spin")
+            if 50 < x < 180 and 550 < y < 600:
+                self.state = GameState.CASINO
+
+        elif self.state == GameState.COLLECTION:
+            # Select / feed / buy
+            owned = list(self.collection.cats.values())
+            for i, cat in enumerate(owned):
+                row = i // 3
+                col = i % 3
+                cx = 80 + col * 280
+                cy = 120 + row * 140
+                if cx < x < cx + 250 and cy < y < cy + 120:
+                    self.selected_cat = cat.id
+                    if not cat.owned:
+                        ok, msg = self.collection.try_buy_cat(cat.id, self.resources)
+                        self.show_msg(msg)
+                        if ok:
+                            self.audio.play_sfx("unlock")
+                            self.empire.add_xp(20)
+                    else:
+                        ok, msg = self.collection.feed_cat(cat.id, self.resources)
+                        self.show_msg(msg)
+                        if ok:
+                            self.audio.play_sfx("feed")
+            if 50 < x < 180 and 550 < y < 600:
+                self.state = GameState.HUB
+
+        elif self.state in (GameState.EMPIRE, GameState.ACHIEVEMENTS):
+            if 50 < x < 180 and 550 < y < 600:
+                self.state = GameState.HUB
+
+    # ---------- DRAW ----------
+    def draw(self):
+        palette = self.time.get_palette()
+        # Sky gradient
+        for i in range(640):
+            t = i / 640
+            r = int(palette["sky_top"][0] * (1 - t) + palette["sky_bottom"][0] * t)
+            g = int(palette["sky_top"][1] * (1 - t) + palette["sky_bottom"][1] * t)
+            b = int(palette["sky_top"][2] * (1 - t) + palette["sky_bottom"][2] * t)
+            pygame.draw.line(self.screen, (r, g, b), (0, i), (960, i))
+
+        # Floor
+        pygame.draw.rect(self.screen, palette["floor"], (0, 480, 960, 160))
+
+        # Neon intensity
+        neon = palette["neon"]
+        if neon > 0.4:
+            # Draw some neon lines
+            color = tuple(int(c * neon) for c in PINK)
+            for y in range(490, 640, 18):
+                pygame.draw.line(self.screen, color, (0, y), (960, y), 1)
+
+        # Header
+        self._draw_header(palette)
+
+        # State content
+        if self.state == GameState.HUB:
+            self._draw_hub()
+        elif self.state == GameState.CASINO:
+            self._draw_casino()
+        elif self.state == GameState.SLOTS:
+            self._draw_slots()
+        elif self.state == GameState.POKER:
+            self._draw_poker()
+        elif self.state == GameState.ROULETTE:
+            self._draw_roulette()
+        elif self.state == GameState.REACTION:
+            self._draw_reaction()
+        elif self.state == GameState.COLLECTION:
+            self._draw_collection()
+        elif self.state == GameState.EMPIRE:
+            self._draw_empire()
+        elif self.state == GameState.ACHIEVEMENTS:
+            self._draw_achievements()
+
+        # Message
+        if self.message_timer > 0:
+            surf = self.font_md.render(self.message, True, GOLD)
+            rect = surf.get_rect(center=(480, 60))
+            bg = pygame.Surface((rect.width + 20, rect.height + 10))
+            bg.set_alpha(180)
+            bg.fill(BLACK)
+            self.screen.blit(bg, (rect.x - 10, rect.y - 5))
+            self.screen.blit(surf, rect)
+
+        # Footer tip
+        tip = self.font_xs.render("ESC — назад | S — сохранить", True, (180, 180, 180))
+        self.screen.blit(tip, (20, 615))
+
+    def _draw_header(self, palette):
+        # Top bar
+        pygame.draw.rect(self.screen, (20, 15, 30), (0, 0, 960, 50))
+        title = self.font_lg.render("CATINO", True, PINK)
+        self.screen.blit(title, (20, 10))
+
+        # Resources
+        coins = self.font_md.render(f"💰 {self.resources.coins}", True, GOLD)
+        fish = self.font_md.render(f"🐟 {self.resources.fish}", True, CYAN)
+        self.screen.blit(coins, (200, 15))
+        self.screen.blit(fish, (340, 15))
+
+        # Time
+        period = self.time.get_palette()["name"]
+        time_str = self.font_sm.render(f"{period}  {self.time.get_hour_string()}", True, WHITE)
+        self.screen.blit(time_str, (700, 18))
+
+        # Empire level
+        emp = self.font_sm.render(f"Империя ур.{self.empire.level}", True, PURPLE)
+        self.screen.blit(emp, (520, 18))
+
+    def _draw_button(self, x, y, w, h, text, color=PINK):
+        pygame.draw.rect(self.screen, color, (x, y, w, h), border_radius=6)
+        pygame.draw.rect(self.screen, WHITE, (x, y, w, h), 2, border_radius=6)
+        surf = self.font_md.render(text, True, WHITE)
+        self.screen.blit(surf, (x + (w - surf.get_width()) // 2, y + (h - surf.get_height()) // 2))
+
+    def _draw_hub(self):
+        welcome = self.font_lg.render("Твоя Кошачья Империя", True, WHITE)
+        self.screen.blit(welcome, (50, 80))
+
+        self._draw_button(50, 180, 200, 50, "🎰 Казино")
+        self._draw_button(50, 250, 200, 50, "🐱 Коллекция")
+        self._draw_button(50, 320, 200, 50, "🏰 Империя")
+        self._draw_button(50, 390, 200, 50, "🏆 Достижения")
+        self._draw_button(700, 550, 200, 45, "💾 Сохранить", (80, 80, 120))
+
+        # Side info
+        info = [
+            "Казино — способ зарабатывать монеты.",
+            "Коллекция — собирай котов и прокачивай дружбу.",
+            "Империя — долгосрочная цель развития.",
+            "Время суток меняет атмосферу и бонусы.",
+            "Ночью выше шанс на крупные выигрыши.",
+        ]
+        for i, line in enumerate(info):
+            s = self.font_sm.render(line, True, (200, 200, 220))
+            self.screen.blit(s, (320, 180 + i * 35))
+
+        # Owned cats preview
+        owned = self.collection.get_owned()
+        y = 400
+        self.screen.blit(self.font_sm.render("Твои коты:", True, CYAN), (320, y))
+        for i, cat in enumerate(owned[:5]):
+            s = self.font_xs.render(f"• {cat.name} (дружба {int(cat.friendship)})", True, WHITE)
+            self.screen.blit(s, (320, y + 25 + i * 20))
+
+    def _draw_casino(self):
+        title = self.font_lg.render("✦ CATSINO ✦", True, PINK)
+        self.screen.blit(title, (50, 80))
+        sub = self.font_sm.render("Выбери развлечение", True, CYAN)
+        self.screen.blit(sub, (50, 120))
+
+        self._draw_button(80, 160, 200, 55, "Кошачьи Слоты")
+        self._draw_button(80, 240, 200, 55, "Котопокер")
+        self._draw_button(80, 320, 200, 55, "Кото-рулетка")
+        self._draw_button(80, 400, 200, 55, "Котоавтомат")
+        self._draw_button(50, 550, 130, 40, "← Назад", (80, 80, 100))
+
+        # Flavor
+        tips = [
+            "Слоты — классика. Тройки и джекпоты.",
+            "Покер — держи карты, собирай комбинации.",
+            "Рулетка — угадай цвет или символ.",
+            "Автомат — лови падающие игрушки!",
+        ]
+        for i, t in enumerate(tips):
+            self.screen.blit(self.font_sm.render(t, True, (180, 180, 200)), (350, 180 + i * 50))
+
+    def _draw_slots(self):
+        title = self.font_lg.render("Кошачьи Слоты", True, GOLD)
+        self.screen.blit(title, (50, 70))
+
+        # Reels area
+        pygame.draw.rect(self.screen, (20, 15, 35), (200, 140, 560, 280), border_radius=10)
+        pygame.draw.rect(self.screen, PINK, (200, 140, 560, 280), 3, border_radius=10)
+
+        symbols = self.slots.get_visible_symbols()
+        names = [SYMBOL_INFO[s]["name"] for s in symbols]
+
+        for i, name in enumerate(names):
+            cx = 280 + i * 160
+            # Symbol box
+            pygame.draw.rect(self.screen, (40, 30, 60), (cx, 180, 120, 160), border_radius=8)
+            pygame.draw.rect(self.screen, CYAN, (cx, 180, 120, 160), 2, border_radius=8)
+            txt = self.font_md.render(name, True, WHITE)
+            self.screen.blit(txt, (cx + 60 - txt.get_width() // 2, 250))
+
+        # Payline
+        pygame.draw.line(self.screen, GOLD, (220, 260), (740, 260), 2)
+
+        # Result
+        if self.slots.result and not self.slots.is_spinning:
+            res = self.slots.result
+            color = GOLD if res["payout"] > 0 else (180, 180, 180)
+            msg = self.font_md.render(res["message"], True, color)
+            self.screen.blit(msg, (480 - msg.get_width() // 2, 430))
+
+        # Controls
+        self._draw_button(300, 520, 60, 45, "-")
+        self._draw_button(400, 520, 160, 45, "КРУТИТЬ")
+        self._draw_button(600, 520, 60, 45, "+")
+        bet_txt = self.font_sm.render(f"Ставка: {self.slots.bet}", True, WHITE)
+        self.screen.blit(bet_txt, (480 - bet_txt.get_width() // 2, 490))
+
+        self._draw_button(50, 550, 130, 40, "← Назад", (80, 80, 100))
+
+    def _draw_poker(self):
+        title = self.font_lg.render("Котопокер", True, GOLD)
+        self.screen.blit(title, (50, 70))
+
+        if self.poker.phase == "bet":
+            self.screen.blit(self.font_md.render("Нажми «Раздать» чтобы начать", True, WHITE), (300, 300))
+            self._draw_button(400, 500, 160, 45, "Раздать")
+        elif self.poker.phase == "dealt":
+            self.screen.blit(self.font_sm.render("Кликни на карты чтобы держать, потом «Взять»", True, CYAN), (250, 200))
+            for i, card in enumerate(self.poker.hand):
+                cx = 180 + i * 120
+                color = (80, 140, 80) if self.poker.held[i] else (40, 30, 60)
+                pygame.draw.rect(self.screen, color, (cx, 280, 100, 140), border_radius=6)
+                pygame.draw.rect(self.screen, WHITE, (cx, 280, 100, 140), 2, border_radius=6)
+                txt = self.font_md.render(str(card), True, WHITE)
+                self.screen.blit(txt, (cx + 50 - txt.get_width() // 2, 340))
+                if self.poker.held[i]:
+                    self.screen.blit(self.font_xs.render("ДЕРЖУ", True, GOLD), (cx + 20, 400))
+            self._draw_button(400, 500, 160, 45, "Взять")
+        elif self.poker.phase == "result":
+            res = self.poker.result
+            for i, cstr in enumerate(res["cards"]):
+                cx = 180 + i * 120
+                pygame.draw.rect(self.screen, (40, 30, 60), (cx, 250, 100, 120), border_radius=6)
+                txt = self.font_md.render(cstr, True, WHITE)
+                self.screen.blit(txt, (cx + 50 - txt.get_width() // 2, 295))
+            msg = self.font_md.render(res["message"], True, GOLD if res["payout"] > 0 else WHITE)
+            self.screen.blit(msg, (480 - msg.get_width() // 2, 400))
+            self._draw_button(400, 500, 160, 45, "Ещё раз")
+
+        self._draw_button(50, 550, 130, 40, "← Назад", (80, 80, 100))
+
+    def _draw_roulette(self):
+        title = self.font_lg.render("Кото-рулетка", True, GOLD)
+        self.screen.blit(title, (50, 70))
+
+        if self.roulette.spinning:
+            pos = self.roulette.get_display_wheel_position()
+            self.screen.blit(self.font_lg.render("Крутится...", True, CYAN), (380, 250))
+            # Simple spinning indicator
+            pygame.draw.circle(self.screen, PINK, (480, 320), 60, 4)
+            angle = pos * 6.28
+            import math
+            ex = 480 + int(math.cos(angle) * 50)
+            ey = 320 + int(math.sin(angle) * 50)
+            pygame.draw.circle(self.screen, GOLD, (ex, ey), 10)
+        elif self.roulette.result:
+            res = self.roulette.result
+            color = GOLD if res["won"] else WHITE
+            self.screen.blit(self.font_md.render(res["message"], True, color), (300, 280))
+        else:
+            self.screen.blit(self.font_md.render("Выбери, на что ставить:", True, WHITE), (300, 200))
+
+        # Choice buttons
+        colors = {
+            "red": (200, 40, 40),
+            "black": (40, 40, 40),
+            "green": (40, 160, 40),
+            "cat": PINK,
+            "fish": CYAN,
+        }
+        for name, cx in [("red", 100), ("black", 220), ("green", 340), ("cat", 460), ("fish", 580)]:
+            self._draw_button(cx, 400, 100, 50, name.upper(), colors[name])
+
+        self._draw_button(50, 550, 130, 40, "← Назад", (80, 80, 100))
+
+    def _draw_reaction(self):
+        title = self.font_lg.render("Котоавтомат — Лови!", True, GOLD)
+        self.screen.blit(title, (50, 70))
+
+        if not self.reaction.active:
+            self.screen.blit(self.font_md.render("Лови игрушки мышкой. Бомбы — зло!", True, WHITE), (250, 280))
+            self.screen.blit(self.font_sm.render(f"Рекорд: {self.resources.get_stat('reaction_highscore')}", True, CYAN), (380, 330))
+            self._draw_button(400, 500, 160, 45, "Старт (20💰)")
+        else:
+            # Playfield
+            pygame.draw.rect(self.screen, (15, 10, 25), (100, 120, 760, 360))
+            # Player catcher
+            px = int(self.reaction.player_x * 760) + 100
+            pygame.draw.rect(self.screen, CYAN, (px - 40, 430, 80, 20), border_radius=4)
+
+            for item in self.reaction.items:
+                ix = int(item.x * 760) + 100
+                iy = int(item.y)
+                color = {
+                    "toy": (255, 180, 50),
+                    "fish": CYAN,
+                    "star": GOLD,
+                    "bomb": (220, 40, 40),
+                }[item.kind]
+                pygame.draw.circle(self.screen, color, (ix, iy), 14)
+                label = {"toy": "🧸", "fish": "🐟", "star": "⭐", "bomb": "💣"}[item.kind]
+                # fallback simple
+                pygame.draw.circle(self.screen, WHITE, (ix, iy), 14, 2)
+
+            # HUD
+            self.screen.blit(self.font_md.render(f"Счёт: {self.reaction.score}", True, GOLD), (120, 130))
+            self.screen.blit(self.font_md.render(f"Жизни: {self.reaction.lives}", True, PINK), (120, 160))
+            self.screen.blit(self.font_md.render(f"Время: {int(self.reaction.time_left)}", True, WHITE), (120, 190))
+            if self.reaction.combo > 1:
+                self.screen.blit(self.font_md.render(f"Комбо x{self.reaction.combo}", True, CYAN), (700, 130))
+
+            if self.reaction.result:
+                self.screen.blit(self.font_md.render(self.reaction.result["message"], True, GOLD), (300, 300))
+
+        self._draw_button(50, 550, 130, 40, "← Назад", (80, 80, 100))
+
+    def _draw_collection(self):
+        title = self.font_lg.render("Коллекция котов", True, CYAN)
+        self.screen.blit(title, (50, 70))
+
+        cats = list(self.collection.cats.values())
+        for i, cat in enumerate(cats):
+            row = i // 3
+            col = i % 3
+            x = 60 + col * 300
+            y = 120 + row * 150
+
+            bg_color = (40, 30, 55) if cat.owned else (25, 20, 30)
+            pygame.draw.rect(self.screen, bg_color, (x, y, 280, 130), border_radius=8)
+            border = cat.color_primary if cat.owned else (80, 80, 80)
+            pygame.draw.rect(self.screen, border, (x, y, 280, 130), 3, border_radius=8)
+
+            name = self.font_md.render(cat.name, True, WHITE if cat.owned else (120, 120, 120))
+            self.screen.blit(name, (x + 15, y + 10))
+
+            rarity = self.font_xs.render(cat.get_display_rarity(), True, GOLD)
+            self.screen.blit(rarity, (x + 15, y + 40))
+
+            if cat.owned:
+                fr = self.font_xs.render(f"Дружба: {int(cat.friendship)}/{cat.friendship_max}", True, CYAN)
+                self.screen.blit(fr, (x + 15, y + 60))
+                ab = self.font_xs.render(cat.ability["name"], True, (200, 180, 255))
+                self.screen.blit(ab, (x + 15, y + 85))
+                self.screen.blit(self.font_xs.render("Клик — покормить (🐟)", True, (150, 150, 150)), (x + 15, y + 105))
+            else:
+                cost = self.font_sm.render(f"Купить: {cat.unlock_cost}💰", True, GOLD)
+                self.screen.blit(cost, (x + 15, y + 70))
+
+        self._draw_button(50, 550, 130, 40, "← Назад", (80, 80, 100))
+
+    def _draw_empire(self):
+        title = self.font_lg.render("Кошачья Империя", True, PURPLE)
+        self.screen.blit(title, (50, 70))
+
+        self.screen.blit(self.font_md.render(f"Уровень: {self.empire.level}", True, GOLD), (50, 130))
+        self.screen.blit(self.font_sm.render(f"Опыт: {self.empire.xp} / {self.empire.xp_to_next}", True, WHITE), (50, 165))
+
+        # Progress bar
+        pygame.draw.rect(self.screen, (40, 40, 50), (50, 200, 400, 20), border_radius=4)
+        progress = self.empire.xp / self.empire.xp_to_next
+        pygame.draw.rect(self.screen, PURPLE, (50, 200, int(400 * progress), 20), border_radius=4)
+
+        self.screen.blit(self.font_md.render("Комнаты:", True, CYAN), (50, 250))
+        for i, (rid, room) in enumerate(self.empire.rooms.items()):
+            status = f"ур.{room['level']}" if room["level"] > 0 else "закрыто"
+            s = self.font_sm.render(f"• {room['name']} — {status}", True, WHITE)
+            self.screen.blit(s, (70, 290 + i * 35))
+
+        self.screen.blit(self.font_sm.render("Играй в казино, корми котов и открывай достижения,", True, (180, 180, 200)), (50, 420))
+        self.screen.blit(self.font_sm.render("чтобы прокачивать империю и открывать новое.", True, (180, 180, 200)), (50, 450))
+
+        self._draw_button(50, 550, 130, 40, "← Назад", (80, 80, 100))
+
+    def _draw_achievements(self):
+        title = self.font_lg.render("Достижения", True, GOLD)
+        self.screen.blit(title, (50, 70))
+
+        from data.achievements import ACHIEVEMENTS
+        y = 120
+        for aid, ach in ACHIEVEMENTS.items():
+            unlocked = self.achievements.is_unlocked(aid)
+            if ach.get("hidden") and not unlocked:
+                continue
+            color = GOLD if unlocked else (120, 120, 120)
+            icon = ach.get("icon", "•")
+            name = f"{icon} {ach['name']}"
+            self.screen.blit(self.font_sm.render(name, True, color), (60, y))
+            if unlocked:
+                self.screen.blit(self.font_xs.render("✓ Получено", True, (100, 255, 100)), (500, y))
+            else:
+                prog = self.achievements.get_progress_text(aid)
+                if prog:
+                    self.screen.blit(self.font_xs.render(prog, True, (180, 180, 180)), (500, y))
+            y += 32
+            if y > 520:
+                break
+
+        self._draw_button(50, 550, 130, 40, "← Назад", (80, 80, 100))
+
+    # ---------- MAIN LOOP ----------
+    def run(self):
+        while self.running:
+            self.dt = self.clock.tick(60) / 1000.0
+            for event in pygame.event.get():
+                self.handle_event(event)
+            self.update()
+            self.draw()
+            pygame.display.flip()
+        pygame.quit()
+
+
+def main():
+    game = CATINO()
+    game.run()
+
+
+if __name__ == "__main__":
+    main()
