@@ -1,85 +1,100 @@
 
-# core/resources.py
-# Central resource management for CATINO.
+# core/audio.py
+# Sound effects and audio management for CATINO.
 
-class ResourceManager:
+import pygame
+import numpy as np
+
+
+class AudioManager:
     def __init__(self):
-        self.coins = 500
-        self.catnip = 0
-        self.fish = 10
-        self.gems = 0
+        self.enabled = True
+        self.volume = 0.4
+        self.music_mood = None
+        self.current_music = None
+        self.sfx = {}
 
-        self.stats = {
-            "spins_total": 0,
-            "jackpots": 0,
-            "poker_wins": 0,
-            "roulette_wins": 0,
-            "reaction_highscore": 0,
-            "night_games": 0,
-            "total_coins_earned": 0,
-            "total_coins_spent": 0,
-            "cats_unlocked": 1,
-            "games_played": 0,
-        }
+        try:
+            if not pygame.mixer.get_init():
+                pygame.mixer.init(
+                    frequency=22050,
+                    size=-16,
+                    channels=2,
+                    buffer=512
+                )
 
-    def add_coins(self, amount: int, source: str = "unknown"):
-        if amount <= 0:
+            self._generate_sfx()
+
+        except pygame.error as error:
+            print(f"Audio initialization error: {error}")
+            self.enabled = False
+
+    def _generate_sfx(self):
+
+        def tone(freq, duration, vol=0.3, wave="square"):
+            sample_rate = 22050
+            n = int(sample_rate * duration)
+
+            t = np.linspace(0, duration, n, False)
+
+            if wave == "square":
+                wave_data = np.sign(
+                    np.sin(2 * np.pi * freq * t)
+                )
+
+            elif wave == "saw":
+                wave_data = 2 * (
+                    t * freq - np.floor(0.5 + t * freq)
+                )
+
+            else:
+                wave_data = np.sin(2 * np.pi * freq * t)
+
+            envelope = np.linspace(1, 0, n)
+            wave_data = wave_data * envelope * vol
+
+            stereo = np.column_stack(
+                (wave_data, wave_data)
+            )
+
+            stereo = (stereo * 32767).astype(np.int16)
+
+            return pygame.sndarray.make_sound(stereo)
+
+        self.sfx["click"] = tone(600, 0.05, 0.2)
+        self.sfx["spin"] = tone(200, 0.08, 0.15, "saw")
+        self.sfx["win"] = tone(520, 0.12, 0.25)
+        self.sfx["win2"] = tone(780, 0.15, 0.25)
+        self.sfx["lose"] = tone(140, 0.2, 0.2, "saw")
+        self.sfx["jackpot"] = tone(880, 0.3, 0.3)
+        self.sfx["feed"] = tone(400, 0.1, 0.2)
+        self.sfx["unlock"] = tone(660, 0.2, 0.3)
+
+    def play_sfx(self, name: str):
+        if not self.enabled:
             return
 
-        self.coins += amount
-        self.stats["total_coins_earned"] += amount
+        sound = self.sfx.get(name)
 
-    def spend_coins(self, amount: int) -> bool:
-        if amount < 0 or self.coins < amount:
-            return False
+        if sound:
+            sound.set_volume(self.volume)
+            sound.play()
 
-        self.coins -= amount
-        self.stats["total_coins_spent"] += amount
-        return True
+    def set_volume(self, volume: float):
+        self.volume = max(0.0, min(1.0, volume))
 
-    def add_fish(self, amount: int = 1):
-        if amount > 0:
-            self.fish += amount
+    def set_enabled(self, enabled: bool):
+        self.enabled = enabled
 
-    def spend_fish(self, amount: int = 1) -> bool:
-        if amount < 0 or self.fish < amount:
-            return False
+        if not enabled:
+            self.stop_all()
 
-        self.fish -= amount
-        return True
+    def set_mood(self, mood: str):
+        if mood == self.music_mood:
+            return
 
-    def add_catnip(self, amount: int = 1):
-        if amount > 0:
-            self.catnip += amount
+        self.music_mood = mood
 
-    def add_gems(self, amount: int = 1):
-        if amount > 0:
-            self.gems += amount
-
-    def inc_stat(self, key: str, value: int = 1):
-        if key not in self.stats:
-            self.stats[key] = 0
-
-        self.stats[key] += value
-
-    def set_stat(self, key: str, value):
-        self.stats[key] = value
-
-    def get_stat(self, key: str, default=0):
-        return self.stats.get(key, default)
-
-    def to_dict(self) -> dict:
-        return {
-            "coins": self.coins,
-            "catnip": self.catnip,
-            "fish": self.fish,
-            "gems": self.gems,
-            "stats": self.stats.copy(),
-        }
-
-    def load_dict(self, data: dict):
-        self.coins = data.get("coins", 500)
-        self.catnip = data.get("catnip", 0)
-        self.fish = data.get("fish", 10)
-        self.gems = data.get("gems", 0)
-        self.stats.update(data.get("stats", {}))
+    def stop_all(self):
+        if pygame.mixer.get_init():
+            pygame.mixer.stop()
