@@ -1,108 +1,106 @@
 
-# entities/cat.py
-# Runtime cat instance with friendship, level and state.
+# systems/collection.py
+# Manages owned cats, unlocking, friendship.
 
-from data.cats import get_cat_data, Rarity
+from entities.cat import Cat
+from data.cats import get_all_cats, get_cat_data
 
 
-class Cat:
-    def __init__(self, cat_id: str, owned: bool = False):
-        data = get_cat_data(cat_id)
+class CatCollection:
+    def __init__(self):
+        self.cats = {}
 
-        if not data:
-            raise ValueError(f"Unknown cat: {cat_id}")
+        # Create all cats as locked by default
+        for cat_id in get_all_cats():
+            self.cats[cat_id] = Cat(cat_id, owned=False)
 
-        self.id = cat_id
-        self.name = data["name"]
-        self.rarity = data["rarity"]
-        self.personality = data["personality"]
-        self.description = data["description"]
-        self.ability = data["ability"]
+        # Starter
+        self.unlock_cat("ryzhik")
 
-        self.base_stats = data["base_stats"].copy()
-
-        self.color_primary = data["color_primary"]
-        self.color_secondary = data["color_secondary"]
-
-        self.unlock_cost = data["unlock_cost"]
-        self.friendship_max = data["friendship_max"]
-
-        self.owned = owned
-        self.friendship = 0
-        self.level = 1
-        self.assigned_room = None
-        self.experience = 0
-
-    def add_friendship(self, amount: float) -> bool:
-        """Returns True if friendship reaches a new milestone."""
-
-        if not self.owned:
+    def unlock_cat(self, cat_id: str) -> bool:
+        if cat_id not in self.cats:
             return False
 
-        old = self.friendship
+        cat = self.cats[cat_id]
 
-        self.friendship = min(
-            self.friendship_max,
-            self.friendship + amount
-        )
+        if cat.owned:
+            return False
 
-        return int(old // 25) < int(self.friendship // 25)
+        cat.owned = True
+        cat.friendship = 5
 
-    def get_ability_effect(self) -> dict:
-        if not self.owned or self.friendship < 10:
-            return {}
+        return True
 
-        base = self.ability.get("effect", {}).copy()
+    def try_buy_cat(self, cat_id: str, resources) -> tuple[bool, str]:
+        cat = self.cats.get(cat_id)
 
-        scale = 1.0 + (
-            self.friendship / self.friendship_max
-        ) * 0.3
+        if not cat:
+            return False, "Нет такого кота"
 
-        scaled = {}
+        if cat.owned:
+            return False, "Уже есть"
 
-        for key, value in base.items():
-            if (
-                isinstance(value, (int, float))
-                and key != "visual_fx"
-            ):
-                if isinstance(value, float):
-                    scaled[key] = value * scale
+        cost = cat.unlock_cost
+
+        if not resources.spend_coins(cost):
+            return False, f"Нужно {cost} монет"
+
+        self.unlock_cat(cat_id)
+        resources.inc_stat("cats_unlocked")
+
+        return True, f"Добро пожаловать, {cat.name}!"
+
+    def feed_cat(self, cat_id: str, resources) -> tuple[bool, str]:
+        cat = self.cats.get(cat_id)
+
+        if not cat or not cat.owned:
+            return False, "Нет кота"
+
+        if not resources.spend_fish(1):
+            return False, "Нет рыбок"
+
+        leveled = cat.add_friendship(8 + cat.level * 2)
+
+        msg = f"{cat.name} покушал! Дружба: {int(cat.friendship)}"
+
+        if leveled:
+            msg += " ★ Новый уровень дружбы!"
+
+        return True, msg
+
+    def get_owned(self) -> list:
+        return [
+            c for c in self.cats.values()
+            if c.owned
+        ]
+
+    def get_active_abilities(self) -> dict:
+        """Aggregate all ability effects from owned cats with enough friendship."""
+
+        total = {}
+
+        for cat in self.get_owned():
+            eff = cat.get_ability_effect()
+
+            for k, v in eff.items():
+                if k == "visual_fx":
+                    total[k] = v
+
+                elif isinstance(v, (int, float)):
+                    total[k] = total.get(k, 0) + v
+
                 else:
-                    scaled[key] = int(value * scale)
-            else:
-                scaled[key] = value
+                    total[k] = v
 
-        return scaled
-
-    def get_display_rarity(self) -> str:
-        return {
-            Rarity.COMMON: "Обычный",
-            Rarity.UNCOMMON: "Необычный",
-            Rarity.RARE: "Редкий",
-            Rarity.EPIC: "Эпический",
-            Rarity.LEGENDARY: "Легендарный",
-        }.get(self.rarity, "?")
+        return total
 
     def to_dict(self) -> dict:
         return {
-            "id": self.id,
-            "owned": self.owned,
-            "friendship": self.friendship,
-            "level": self.level,
-            "experience": self.experience,
-            "assigned_room": self.assigned_room,
+            cid: c.to_dict()
+            for cid, c in self.cats.items()
         }
 
-    @classmethod
-    def from_dict(cls, data: dict) -> "Cat":
-        cat = cls(
-            data["id"],
-            owned=data.get("owned", False)
-        )
-
-        cat.friendship = data.get("friendship", 0)
-        cat.level = data.get("level", 1)
-        cat.experience = data.get("experience", 0)
-        cat.assigned_room = data.get("assigned_room")
-
-        return cat
+    def load_dict(self, data: dict):
+        for cid, cdata in data.items():
+            if cid in self.cats:
+                self.cats[cid] = Cat.from_dict(cdata)
