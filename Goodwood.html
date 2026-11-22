@@ -48,6 +48,23 @@ h1 span{color:var(--gold);display:block}
 .wish small{font-size:11px;color:var(--muted);line-height:1.5}
 .footer{text-align:center;color:#8f91a5;font-size:11px;letter-spacing:1px;margin:48px 0 0}
 @media(max-width:520px){main{padding-top:28px}.scene{height:235px}.wishes{grid-template-columns:1fr;max-width:340px}.wish{display:flex;align-items:center;text-align:left;gap:13px;padding:14px 17px}.wish .emoji{margin:0}.wish small{display:block}}
+
+.game-wrap{max-width:650px;margin:38px auto 0;padding:25px;border:1px solid #ffffff20;background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.035));border-radius:20px;box-shadow:0 18px 55px #0002}
+.game-heading{text-align:center;font:600 clamp(25px,5vw,34px) 'Playfair Display',serif;margin:0 0 8px;color:var(--cream)}
+.game-intro{text-align:center;color:var(--muted);font-size:13px;line-height:1.65;margin:0 auto 17px;max-width:440px}
+.game-stats{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:0 0 12px}
+.stat{border:1px solid #ffffff20;background:#ffffff0b;border-radius:999px;padding:7px 13px;color:var(--muted);font-size:12px}
+.stat b{color:var(--gold);font-variant-numeric:tabular-nums}
+#starGame{display:block;width:100%;height:auto;aspect-ratio:720/320;border:1px solid #ffffff24;border-radius:14px;background:linear-gradient(180deg,#252a45,#34334e 70%,#51415a);touch-action:none;cursor:crosshair}
+.game-controls{text-align:center;margin-top:15px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+.game-btn{border:1px solid #e8bd8370;background:linear-gradient(135deg,#e8bd83,#c98d68);color:#292338;padding:11px 22px;border-radius:999px;font:700 13px 'DM Sans';cursor:pointer;transition:.2s}
+.game-btn:hover{transform:translateY(-2px)}
+.game-hint{color:#aeb0c3;font-size:11px;line-height:1.5;text-align:center;margin:12px 0 0}
+.bonus{display:none;margin:19px auto 0;max-width:560px;padding:22px;border:1px solid #e8bd8370;border-radius:15px;background:linear-gradient(145deg,#fff8ec,#f0dfc7);color:#413747;text-align:center;animation:bonusIn .7s ease both}
+.bonus.show{display:block}.bonus h3{font:600 25px 'Playfair Display';margin:0 0 10px}.bonus p{font-size:14px;line-height:1.8;margin:0}
+@keyframes bonusIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:520px){.game-wrap{padding:18px 13px}.game-hint{font-size:10px}}
+
 </style>
 </head>
 <body>
@@ -83,6 +100,23 @@ h1 span{color:var(--gold);display:block}
     <div class="wish"><span class="emoji">🥂</span><div><strong>Счастливые моменты</strong><small>Чтобы каждый день находился повод улыбнуться</small></div></div>
     <div class="wish"><span class="emoji">🔑</span><div><strong>Новый этап</strong><small>Чтобы впереди ждало много прекрасного</small></div></div>
   </div>
+
+  <section class="game-wrap" aria-labelledby="gameTitle">
+    <h2 class="game-heading" id="gameTitle">Маленький звёздный челлендж ✨</h2>
+    <p class="game-intro">Поймай 8 падающих звёздочек — и откроется ещё одно особенное поздравление для тебя!</p>
+    <div class="game-stats">
+      <div class="stat">Звёзды: <b id="score">0 / 8</b></div>
+      <div class="stat">Время: <b id="time">25</b> сек.</div>
+    </div>
+    <canvas id="starGame" width="720" height="320" aria-label="Игра: двигай ловушку и собирай падающие звёзды"></canvas>
+    <div class="game-controls"><button class="game-btn" id="gameButton" onclick="startGame()">Начать игру ✦</button></div>
+    <p class="game-hint" id="gameHint">Веди пальцем или мышкой по полю, чтобы двигать домик-ловушку. На компьютере также работают стрелки ← →.</p>
+    <div class="bonus" id="bonusMessage">
+      <h3>Ты собрала целое созвездие! 🌟</h3>
+      <p>Никита, пусть в твоей новой жизни будет столько же ярких моментов, сколько звёзд ты только что поймала. Желаю, чтобы даже самые обычные дни приносили что-то хорошее, чтобы мечты постепенно становились планами, а планы — приятной реальностью. Пусть в новом доме всегда найдётся место для радости, вдохновения, любимых занятий и людей, с которыми легко и спокойно. И пусть каждый новый ключ открывает перед тобой новые возможности. Счастья тебе, уюта и по-настоящему счастливой жизни на новом месте! 🤍</p>
+    </div>
+  </section>
+
   <div class="footer">НОВЫЙ ДОМ · НОВЫЕ ИСТОРИИ · НОВЫЕ ВОСПОМИНАНИЯ</div>
 </main>
 <script>
@@ -107,6 +141,57 @@ function confetti(){
     setTimeout(()=>el.remove(),4300);
   }
 }
+
+const gameCanvas=document.getElementById('starGame');
+const gameCtx=gameCanvas.getContext('2d');
+const scoreEl=document.getElementById('score');
+const timeEl=document.getElementById('time');
+const gameButton=document.getElementById('gameButton');
+const gameHint=document.getElementById('gameHint');
+const bonusMessage=document.getElementById('bonusMessage');
+let gameRunning=false, gameScore=0, gameTime=25, catcherX=360, stars=[], spawnClock=0, lastFrame=0, animationId=0;
+const gameW=720, gameH=320, targetScore=8;
+function drawGame(){
+  const c=gameCtx; c.clearRect(0,0,gameW,gameH);
+  // distant stars
+  for(let i=0;i<34;i++){const x=(i*97+31)%gameW,y=(i*53+19)%245;c.fillStyle='rgba(255,244,218,'+(0.18+(i%4)*.09)+')';c.beginPath();c.arc(x,y,1+(i%3)*.45,0,Math.PI*2);c.fill();}
+  // soft horizon and home-shaped catcher
+  c.fillStyle='rgba(232,189,131,.12)';c.fillRect(0,286,gameW,34);
+  c.save();c.translate(catcherX,282);
+  c.fillStyle='#e8bd83';c.beginPath();c.moveTo(-43,0);c.lineTo(0,-27);c.lineTo(43,0);c.closePath();c.fill();
+  c.fillStyle='#fff0d7';c.fillRect(-34,0,68,25);c.fillStyle='#98745f';c.fillRect(-7,9,14,16);
+  c.restore();
+  stars.forEach(st=>{c.save();c.translate(st.x,st.y);c.rotate(st.rot);c.fillStyle='#ffe2a8';c.shadowColor='#ffe2a8';c.shadowBlur=16;c.beginPath();for(let i=0;i<10;i++){const r=i%2===0?st.r:st.r*.43;const a=-Math.PI/2+i*Math.PI/5;c.lineTo(Math.cos(a)*r,Math.sin(a)*r);}c.closePath();c.fill();c.restore();});
+  if(!gameRunning && gameScore===0){c.fillStyle='rgba(255,248,236,.7)';c.font='16px DM Sans';c.textAlign='center';c.fillText('Нажми «Начать игру» и лови звёзды!',360,150);}
+}
+function startGame(){
+  cancelAnimationFrame(animationId);gameRunning=true;gameScore=0;gameTime=25;catcherX=360;stars=[];spawnClock=0;lastFrame=0;
+  scoreEl.textContent='0 / '+targetScore;timeEl.textContent='25';bonusMessage.classList.remove('show');gameButton.textContent='Игра началась…';gameButton.disabled=true;gameHint.textContent='Лови звёздочки домиком внизу поля. У тебя есть 25 секунд!';
+  animationId=requestAnimationFrame(gameLoop);
+}
+function gameLoop(timestamp){
+  if(!gameRunning)return;
+  const dt=lastFrame?Math.min((timestamp-lastFrame)/1000,.04):0;lastFrame=timestamp;
+  gameTime=Math.max(0,gameTime-dt);spawnClock+=dt;
+  if(spawnClock>.72){spawnClock=0;stars.push({x:25+Math.random()*(gameW-50),y:-15,r:9+Math.random()*4,speed:105+Math.random()*65,rot:Math.random()*6});}
+  for(let i=stars.length-1;i>=0;i--){const st=stars[i];st.y+=st.speed*dt;st.rot+=dt*1.5;
+    if(st.y>255 && st.y<305 && Math.abs(st.x-catcherX)<48){stars.splice(i,1);gameScore++;scoreEl.textContent=gameScore+' / '+targetScore;if(gameScore>=targetScore){finishGame(true);return;}}
+    else if(st.y>gameH+20)stars.splice(i,1);
+  }
+  timeEl.textContent=Math.ceil(gameTime);drawGame();
+  if(gameTime<=0){finishGame(false);return;}
+  animationId=requestAnimationFrame(gameLoop);
+}
+function finishGame(won){gameRunning=false;cancelAnimationFrame(animationId);drawGame();gameButton.disabled=false;gameButton.textContent=won?'Сыграть ещё раз':'Попробовать ещё раз';
+  if(won){bonusMessage.classList.add('show');gameHint.textContent='Победа! Дополнительное поздравление уже открылось ниже. 🤍';setTimeout(()=>bonusMessage.scrollIntoView({behavior:'smooth',block:'center'}),250);}
+  else{gameHint.textContent='Время вышло! Ничего страшного — попробуй ещё раз, звёзды никуда не убегут.';}
+}
+function moveCatcher(event){const rect=gameCanvas.getBoundingClientRect();const scale=gameW/rect.width;catcherX=Math.max(45,Math.min(gameW-45,(event.clientX-rect.left)*scale));if(!gameRunning)drawGame();}
+gameCanvas.addEventListener('pointermove',moveCatcher);
+gameCanvas.addEventListener('pointerdown',moveCatcher);
+window.addEventListener('keydown',e=>{if(!gameRunning)return;if(e.key==='ArrowLeft'){catcherX=Math.max(45,catcherX-28);e.preventDefault();}if(e.key==='ArrowRight'){catcherX=Math.min(gameW-45,catcherX+28);e.preventDefault();}});
+drawGame();
+
 </script>
 </body>
 </html>
