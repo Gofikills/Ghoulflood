@@ -1,75 +1,112 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Gra w kółko i krzyżyk</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#171a2b">
+<title>С новосельем, Никита! 🏡</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+:root{--bg:#171a2b;--cream:#fff8ec;--gold:#e8bd83;--muted:#c5c3d0;--glass:rgba(255,255,255,.075)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#34314b 0%,#202238 42%,#151827 100%);color:var(--cream);font-family:'DM Sans',sans-serif;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.18;background-image:radial-gradient(#fff 1px,transparent 1px);background-size:37px 37px;mask-image:linear-gradient(to bottom,#000,transparent 80%)}
+.glow{position:fixed;width:420px;height:420px;border-radius:50%;filter:blur(90px);opacity:.13;pointer-events:none}
+.glow.one{background:#e8a86e;top:15%;left:-220px}.glow.two{background:#8885e8;right:-230px;bottom:0}
+main{width:min(900px,100%);margin:auto;padding:38px 20px 70px;position:relative}
+.topline{text-align:center;color:var(--gold);font-size:11px;letter-spacing:4px;text-transform:uppercase;margin:10px 0 22px}
+h1{font-family:'Playfair Display',serif;font-size:clamp(42px,8vw,76px);line-height:1.04;text-align:center;font-weight:600;margin:0}
+h1 span{color:var(--gold);display:block}
+.subtitle{text-align:center;color:var(--muted);font-size:15px;line-height:1.7;max-width:480px;margin:22px auto 0}
+.scene{height:270px;display:flex;align-items:center;justify-content:center;margin:10px auto 18px;position:relative}
+.house{width:190px;height:142px;position:relative;margin-top:60px;filter:drop-shadow(0 16px 28px rgba(0,0,0,.3));animation:float 4s ease-in-out infinite}
+.roof{position:absolute;width:142px;height:142px;background:linear-gradient(145deg,#e8bd83,#bd805c);transform:rotate(45deg);top:-47px;left:24px;border-radius:13px 0 0 0}
+.home{position:absolute;left:12px;right:12px;bottom:0;height:112px;background:linear-gradient(135deg,#fff0d7,#e7cda9);border-radius:5px 5px 12px 12px}
+.door{position:absolute;bottom:0;left:77px;width:38px;height:68px;background:#8d6656;border-radius:18px 18px 0 0}
+.window{position:absolute;top:27px;width:33px;height:33px;background:#f5c978;border:5px solid #9a7664;border-radius:4px;box-shadow:0 0 23px #f5c97899}
+.window.left{left:21px}.window.right{right:21px}
+.knob{position:absolute;width:4px;height:4px;border-radius:50%;background:#f4d28d;right:6px;top:35px}
+.spark{position:absolute;color:var(--gold);font-size:22px;animation:twinkle 2.4s infinite}
+.s1{left:20%;top:30%}.s2{right:19%;top:25%;animation-delay:.8s}.s3{right:26%;bottom:12%;animation-delay:1.4s}.s4{left:27%;bottom:18%;animation-delay:.4s}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@keyframes twinkle{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+.open-card{display:block;margin:0 auto;border:1px solid #e8bd8370;background:linear-gradient(135deg,#e8bd83,#c98d68);color:#292338;padding:15px 27px;border-radius:999px;font:700 14px 'DM Sans';letter-spacing:.2px;cursor:pointer;box-shadow:0 10px 30px #0003;transition:.25s}
+.open-card:hover{transform:translateY(-3px);box-shadow:0 14px 35px #0005}
+.message{max-width:650px;margin:34px auto 0;padding:0 22px;max-height:0;opacity:0;overflow:hidden;transform:translateY(15px);transition:max-height 1s ease,opacity .8s ease,transform .8s ease}
+.message.show{max-height:1000px;opacity:1;transform:translateY(0)}
+.paper{background:linear-gradient(145deg,#fff9ef,#f4e7d4);color:#393344;border-radius:18px;padding:clamp(25px,5vw,45px);box-shadow:0 24px 70px #0004;position:relative}
+.paper:before{content:"";position:absolute;inset:9px;border:1px solid #c9a77d80;border-radius:12px;pointer-events:none}
+.paper .eyebrow{text-align:center;color:#a47b58;font-size:10px;letter-spacing:3px;text-transform:uppercase}
+.paper h2{font:600 clamp(27px,5vw,38px) 'Playfair Display';text-align:center;margin:13px 0 25px;color:#3c3444}
+.paper p{font-size:15px;line-height:1.9;margin:0 0 16px;color:#514b59}
+.paper .sign{font-family:'Playfair Display',serif;font-size:20px;text-align:right;color:#9a704d;margin:26px 0 0}
+.wishes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:650px;margin:35px auto 0}
+.wish{border:1px solid #ffffff19;background:var(--glass);border-radius:15px;padding:19px 12px;text-align:center;backdrop-filter:blur(8px)}
+.wish .emoji{font-size:25px;display:block;margin-bottom:9px}
+.wish strong{font-size:13px;color:var(--gold);display:block;margin-bottom:5px}
+.wish small{font-size:11px;color:var(--muted);line-height:1.5}
+.footer{text-align:center;color:#8f91a5;font-size:11px;letter-spacing:1px;margin:48px 0 0}
+@media(max-width:520px){main{padding-top:28px}.scene{height:235px}.wishes{grid-template-columns:1fr;max-width:340px}.wish{display:flex;align-items:center;text-align:left;gap:13px;padding:14px 17px}.wish .emoji{margin:0}.wish small{display:block}}
+</style>
+</head>
+<body>
+<div class="glow one"></div><div class="glow two"></div>
+<main>
+  <div class="topline">маленькое поздравление с большим событием</div>
+  <h1>С новосельем,<span>Никита!</span></h1>
+  <p class="subtitle">Пусть новая дверь откроется не просто в новую квартиру, а в целую главу, полную хороших моментов.</p>
 
-<h2>Kalkulator</h2>
+  <div class="scene" aria-label="Иллюстрация уютного домика">
+    <span class="spark s1">✦</span><span class="spark s2">✧</span><span class="spark s3">✦</span><span class="spark s4">✧</span>
+    <div class="house"><div class="roof"></div><div class="home"><div class="window left"></div><div class="window right"></div><div class="door"><div class="knob"></div></div></div></div>
+  </div>
 
-<table border="1" cellpadding="10">
+  <button class="open-card" id="openBtn" onclick="openMessage()">Открыть поздравление <span>✦</span></button>
 
-<tr>
-<td colspan="4">
-<input type="text" id="ekran" readonly size="24">
-</td>
-</tr>
-<tr>
-<td><button onclick="wpisz('7')">7</button></td>
-<td><button onclick="wpisz('8')">8</button></td>
-<td><button onclick="wpisz('9')">9</button></td>
-<td><button onclick="wpisz('/')">/</button></td>
-</tr>
-<tr>
-<td><button onclick="wpisz('4')">4</button></td>
-<td><button onclick="wpisz('5')">5</button></td>
-<td><button onclick="wpisz('6')">6</button></td>
-<td><button onclick="wpisz('*')">*</button></td>
-</tr>
-<tr>
-<td><button onclick="wpisz('1')">1</button></td>
-<td><button onclick="wpisz('2')">2</button></td>
-<td><button onclick="wpisz('3')">3</button></td>
-<td><button onclick="wpisz('-')">-</button></td>
-</tr>
-<tr>
-<td><button onclick="wpisz('0')">0</button></td>
-<td><button onclick="wpisz('.')">.</button></td>
-<td><button onclick="oblicz('=')">=</button></td>
-<td><button onclick="wpisz('+')">+</button></td>
-<td><button onclick="wpisz('/')">perwiastek</button></td>
-<td><button onclick="wpisz('')"></button></td>
-</tr>
-<tr>
-<td colspan="4">
-<button onclick="wyczysc()">Wyczysc (C)</button>
-</td>
-</tr>
-</table>
+  <section class="message" id="message">
+    <div class="paper">
+      <div class="eyebrow">от всего сердца</div>
+      <h2>Пусть здесь будет хорошо</h2>
+      <p>Никита, поздравляю тебя с новосельем! 🏡</p>
+      <p>Переезд — это ведь не просто новые стены, ключи и коробки. Это начало чего-то своего. Место, куда можно возвращаться после длинного дня, где можно выдохнуть, почувствовать себя спокойно и просто быть собой.</p>
+      <p>Я искренне желаю, чтобы в этом доме всегда было тепло — не только от батарей, но и от людей, разговоров, смеха и маленьких радостей. Чтобы утро начиналось с хорошего настроения, вечера приносили уют, а поводов улыбаться становилось всё больше.</p>
+      <p>Пусть всё постепенно обустроится именно так, как тебе хочется. Пусть рядом будут нужные люди, в доме чаще звучит смех, а за его порогом остаётся всё лишнее и тревожное.</p>
+      <p>И самое главное — пусть это место станет по-настоящему твоим. Таким, куда всегда приятно возвращаться и в котором хочется создавать новые воспоминания.</p>
+      <p>Счастья тебе на новом месте, душевного спокойствия, приятных неожиданностей и множества светлых дней. Пусть это будет начало очень хорошего периода! 🤍</p>
+      <div class="sign">С новосельем! ✨</div>
+    </div>
+  </section>
 
-<script>function wpisz(znak) {
-    document.getElementById("ekran").value += znak;
+  <div class="wishes">
+    <div class="wish"><span class="emoji">🕯️</span><div><strong>Уют и тепло</strong><small>Чтобы дома всегда было спокойно и хорошо</small></div></div>
+    <div class="wish"><span class="emoji">🥂</span><div><strong>Счастливые моменты</strong><small>Чтобы каждый день находился повод улыбнуться</small></div></div>
+    <div class="wish"><span class="emoji">🔑</span><div><strong>Новый этап</strong><small>Чтобы впереди ждало много прекрасного</small></div></div>
+  </div>
+  <div class="footer">НОВЫЙ ДОМ · НОВЫЕ ИСТОРИИ · НОВЫЕ ВОСПОМИНАНИЯ</div>
+</main>
+<script>
+function openMessage(){
+  const message=document.getElementById('message');
+  const button=document.getElementById('openBtn');
+  message.classList.add('show');
+  button.textContent='Поздравление открыто ✨';
+  button.disabled=true;
+  button.style.opacity='.7';
+  setTimeout(()=>message.scrollIntoView({behavior:'smooth',block:'start'}),180);
+  confetti();
 }
-
-function oblicz() {
-    let ekran = document.getElementById("ekran");
-    try {
-        let tekst = ekran.value;
-        if (!/^[0-9+\-*/. ]+$/.test(tekst)) {
-            throw new Error("Bledne dzialanie");
-        }
-        let wynik = Function("return (" + tekst + ")")();
-        if (!Number.isFinite(wynik)) {
-            ekran.value = "Blad";
-        } else {
-            ekran.value = wynik;
-        }
-    } catch {
-        ekran.value = "Blad";
-    }
+function confetti(){
+  const symbols=['✦','✧','✿','✨','🤍'];
+  for(let i=0;i<32;i++){
+    const el=document.createElement('span');
+    el.textContent=symbols[Math.floor(Math.random()*symbols.length)];
+    el.style.cssText=`position:fixed;z-index:10;left:${Math.random()*100}vw;top:-30px;color:${Math.random()>.5?'#e8bd83':'#fff0d7'};font-size:${12+Math.random()*15}px;pointer-events:none;transition:transform ${2+Math.random()*2}s ease,opacity 2.5s ease`;
+    document.body.appendChild(el);
+    requestAnimationFrame(()=>{el.style.transform=`translateY(${window.innerHeight+80}px) rotate(${Math.random()*500}deg)`;el.style.opacity='0'});
+    setTimeout(()=>el.remove(),4300);
+  }
 }
-
-function wyczysc() {
-    document.getElementById("ekran").value = "";
-}</script>
+</script>
 </body>
 </html>
