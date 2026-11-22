@@ -1,197 +1,134 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#171a2b">
-<title>С новосельем, Никита! 🏡</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
-:root{--bg:#171a2b;--cream:#fff8ec;--gold:#e8bd83;--muted:#c5c3d0;--glass:rgba(255,255,255,.075)}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#34314b 0%,#202238 42%,#151827 100%);color:var(--cream);font-family:'DM Sans',sans-serif;overflow-x:hidden}
-body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.18;background-image:radial-gradient(#fff 1px,transparent 1px);background-size:37px 37px;mask-image:linear-gradient(to bottom,#000,transparent 80%)}
-.glow{position:fixed;width:420px;height:420px;border-radius:50%;filter:blur(90px);opacity:.13;pointer-events:none}
-.glow.one{background:#e8a86e;top:15%;left:-220px}.glow.two{background:#8885e8;right:-230px;bottom:0}
-main{width:min(900px,100%);margin:auto;padding:38px 20px 70px;position:relative}
-.topline{text-align:center;color:var(--gold);font-size:11px;letter-spacing:4px;text-transform:uppercase;margin:10px 0 22px}
-h1{font-family:'Playfair Display',serif;font-size:clamp(42px,8vw,76px);line-height:1.04;text-align:center;font-weight:600;margin:0}
-h1 span{color:var(--gold);display:block}
-.subtitle{text-align:center;color:var(--muted);font-size:15px;line-height:1.7;max-width:480px;margin:22px auto 0}
-.scene{height:270px;display:flex;align-items:center;justify-content:center;margin:10px auto 18px;position:relative}
-.house{width:190px;height:142px;position:relative;margin-top:60px;filter:drop-shadow(0 16px 28px rgba(0,0,0,.3));animation:float 4s ease-in-out infinite}
-.roof{position:absolute;width:142px;height:142px;background:linear-gradient(145deg,#e8bd83,#bd805c);transform:rotate(45deg);top:-47px;left:24px;border-radius:13px 0 0 0}
-.home{position:absolute;left:12px;right:12px;bottom:0;height:112px;background:linear-gradient(135deg,#fff0d7,#e7cda9);border-radius:5px 5px 12px 12px}
-.door{position:absolute;bottom:0;left:77px;width:38px;height:68px;background:#8d6656;border-radius:18px 18px 0 0}
-.window{position:absolute;top:27px;width:33px;height:33px;background:#f5c978;border:5px solid #9a7664;border-radius:4px;box-shadow:0 0 23px #f5c97899}
-.window.left{left:21px}.window.right{right:21px}
-.knob{position:absolute;width:4px;height:4px;border-radius:50%;background:#f4d28d;right:6px;top:35px}
-.spark{position:absolute;color:var(--gold);font-size:22px;animation:twinkle 2.4s infinite}
-.s1{left:20%;top:30%}.s2{right:19%;top:25%;animation-delay:.8s}.s3{right:26%;bottom:12%;animation-delay:1.4s}.s4{left:27%;bottom:18%;animation-delay:.4s}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
-@keyframes twinkle{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
-.open-card{display:block;margin:0 auto;border:1px solid #e8bd8370;background:linear-gradient(135deg,#e8bd83,#c98d68);color:#292338;padding:15px 27px;border-radius:999px;font:700 14px 'DM Sans';letter-spacing:.2px;cursor:pointer;box-shadow:0 10px 30px #0003;transition:.25s}
-.open-card:hover{transform:translateY(-3px);box-shadow:0 14px 35px #0005}
-.message{max-width:650px;margin:34px auto 0;padding:0 22px;max-height:0;opacity:0;overflow:hidden;transform:translateY(15px);transition:max-height 1s ease,opacity .8s ease,transform .8s ease}
-.message.show{max-height:1000px;opacity:1;transform:translateY(0)}
-.paper{background:linear-gradient(145deg,#fff9ef,#f4e7d4);color:#393344;border-radius:18px;padding:clamp(25px,5vw,45px);box-shadow:0 24px 70px #0004;position:relative}
-.paper:before{content:"";position:absolute;inset:9px;border:1px solid #c9a77d80;border-radius:12px;pointer-events:none}
-.paper .eyebrow{text-align:center;color:#a47b58;font-size:10px;letter-spacing:3px;text-transform:uppercase}
-.paper h2{font:600 clamp(27px,5vw,38px) 'Playfair Display';text-align:center;margin:13px 0 25px;color:#3c3444}
-.paper p{font-size:15px;line-height:1.9;margin:0 0 16px;color:#514b59}
-.paper .sign{font-family:'Playfair Display',serif;font-size:20px;text-align:right;color:#9a704d;margin:26px 0 0}
-.wishes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:650px;margin:35px auto 0}
-.wish{border:1px solid #ffffff19;background:var(--glass);border-radius:15px;padding:19px 12px;text-align:center;backdrop-filter:blur(8px)}
-.wish .emoji{font-size:25px;display:block;margin-bottom:9px}
-.wish strong{font-size:13px;color:var(--gold);display:block;margin-bottom:5px}
-.wish small{font-size:11px;color:var(--muted);line-height:1.5}
-.footer{text-align:center;color:#8f91a5;font-size:11px;letter-spacing:1px;margin:48px 0 0}
-@media(max-width:520px){main{padding-top:28px}.scene{height:235px}.wishes{grid-template-columns:1fr;max-width:340px}.wish{display:flex;align-items:center;text-align:left;gap:13px;padding:14px 17px}.wish .emoji{margin:0}.wish small{display:block}}
+from enum import Enum, auto
 
-.game-wrap{max-width:650px;margin:38px auto 0;padding:25px;border:1px solid #ffffff20;background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.035));border-radius:20px;box-shadow:0 18px 55px #0002}
-.game-heading{text-align:center;font:600 clamp(25px,5vw,34px) 'Playfair Display',serif;margin:0 0 8px;color:var(--cream)}
-.game-intro{text-align:center;color:var(--muted);font-size:13px;line-height:1.65;margin:0 auto 17px;max-width:440px}
-.game-stats{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:0 0 12px}
-.stat{border:1px solid #ffffff20;background:#ffffff0b;border-radius:999px;padding:7px 13px;color:var(--muted);font-size:12px}
-.stat b{color:var(--gold);font-variant-numeric:tabular-nums}
-#starGame{display:block;width:100%;height:auto;aspect-ratio:720/320;border:1px solid #ffffff24;border-radius:14px;background:linear-gradient(180deg,#252a45,#34334e 70%,#51415a);touch-action:none;cursor:crosshair}
-.game-controls{text-align:center;margin-top:15px;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
-.game-btn{border:1px solid #e8bd8370;background:linear-gradient(135deg,#e8bd83,#c98d68);color:#292338;padding:11px 22px;border-radius:999px;font:700 13px 'DM Sans';cursor:pointer;transition:.2s}
-.game-btn:hover{transform:translateY(-2px)}
-.game-hint{color:#aeb0c3;font-size:11px;line-height:1.5;text-align:center;margin:12px 0 0}
-.bonus{display:none;margin:19px auto 0;max-width:560px;padding:22px;border:1px solid #e8bd8370;border-radius:15px;background:linear-gradient(145deg,#fff8ec,#f0dfc7);color:#413747;text-align:center;animation:bonusIn .7s ease both}
-.bonus.show{display:block}.bonus h3{font:600 25px 'Playfair Display';margin:0 0 10px}.bonus p{font-size:14px;line-height:1.8;margin:0}
-@keyframes bonusIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
-@media(max-width:520px){.game-wrap{padding:18px 13px}.game-hint{font-size:10px}}
+class Rarity(Enum):
+    COMMON = 1
+    UNCOMMON = 2
+    RARE = 3
+    EPIC = 4
+    LEGENDARY = 5
 
-</style>
-</head>
-<body>
-<div class="glow one"></div><div class="glow two"></div>
-<main>
-  <div class="topline">маленькое поздравление с большим событием</div>
-  <h1>С новосельем,<span>Никита!</span></h1>
-  <p class="subtitle">Пусть новая дверь откроется не просто в новую квартиру, а в целую главу, полную хороших моментов.</p>
+class CatPersonality(Enum):
+    PLAYFUL = auto()
+    MYSTERIOUS = auto()
+    ROYAL = auto()
+    COSMIC = auto()
+    LAZY = auto()
+    CURIOUS = auto()
+    BRAVE = auto()
 
-  <div class="scene" aria-label="Иллюстрация уютного домика">
-    <span class="spark s1">✦</span><span class="spark s2">✧</span><span class="spark s3">✦</span><span class="spark s4">✧</span>
-    <div class="house"><div class="roof"></div><div class="home"><div class="window left"></div><div class="window right"></div><div class="door"><div class="knob"></div></div></div></div>
-  </div>
-
-  <button class="open-card" id="openBtn" onclick="openMessage()">Открыть поздравление <span>✦</span></button>
-
-  <section class="message" id="message">
-    <div class="paper">
-      <div class="eyebrow">от всего сердца</div>
-      <h2>Пусть здесь будет хорошо</h2>
-      <p>Никита, поздравляю тебя с новосельем! 🏡</p>
-      <p>Переезд — это ведь не просто новые стены, ключи и коробки. Это начало чего-то своего. Место, куда можно возвращаться после длинного дня, где можно выдохнуть, почувствовать себя спокойно и просто быть собой.</p>
-      <p>Я искренне желаю, чтобы в этом доме всегда было тепло — не только от батарей, но и от людей, разговоров, смеха и маленьких радостей. Чтобы утро начиналось с хорошего настроения, вечера приносили уют, а поводов улыбаться становилось всё больше.</p>
-      <p>Пусть всё постепенно обустроится именно так, как тебе хочется. Пусть рядом будут нужные люди, в доме чаще звучит смех, а за его порогом остаётся всё лишнее и тревожное.</p>
-      <p>И самое главное — пусть это место станет по-настоящему твоим. Таким, куда всегда приятно возвращаться и в котором хочется создавать новые воспоминания.</p>
-      <p>Счастья тебе на новом месте, душевного спокойствия, приятных неожиданностей и множества светлых дней. Пусть это будет начало очень хорошего периода! 🤍</p>
-      <div class="sign">С новосельем! ✨</div>
-    </div>
-  </section>
-
-  <div class="wishes">
-    <div class="wish"><span class="emoji">🕯️</span><div><strong>Уют и тепло</strong><small>Чтобы дома всегда было спокойно и хорошо</small></div></div>
-    <div class="wish"><span class="emoji">🥂</span><div><strong>Счастливые моменты</strong><small>Чтобы каждый день находился повод улыбнуться</small></div></div>
-    <div class="wish"><span class="emoji">🔑</span><div><strong>Новый этап</strong><small>Чтобы впереди ждало много прекрасного</small></div></div>
-  </div>
-
-  <section class="game-wrap" aria-labelledby="gameTitle">
-    <h2 class="game-heading" id="gameTitle">Маленький звёздный челлендж ✨</h2>
-    <p class="game-intro">Поймай 8 падающих звёздочек — и откроется ещё одно особенное поздравление для тебя!</p>
-    <div class="game-stats">
-      <div class="stat">Звёзды: <b id="score">0 / 8</b></div>
-      <div class="stat">Время: <b id="time">25</b> сек.</div>
-    </div>
-    <canvas id="starGame" width="720" height="320" aria-label="Игра: двигай ловушку и собирай падающие звёзды"></canvas>
-    <div class="game-controls"><button class="game-btn" id="gameButton" onclick="startGame()">Начать игру ✦</button></div>
-    <p class="game-hint" id="gameHint">Веди пальцем или мышкой по полю, чтобы двигать домик-ловушку. На компьютере также работают стрелки ← →.</p>
-    <div class="bonus" id="bonusMessage">
-      <h3>Ты собрала целое созвездие! 🌟</h3>
-      <p>Никита, пусть в твоей новой жизни будет столько же ярких моментов, сколько звёзд ты только что поймала. Желаю, чтобы даже самые обычные дни приносили что-то хорошее, чтобы мечты постепенно становились планами, а планы — приятной реальностью. Пусть в новом доме всегда найдётся место для радости, вдохновения, любимых занятий и людей, с которыми легко и спокойно. И пусть каждый новый ключ открывает перед тобой новые возможности. Счастья тебе, уюта и по-настоящему счастливой жизни на новом месте! 🤍</p>
-    </div>
-  </section>
-
-  <div class="footer">НОВЫЙ ДОМ · НОВЫЕ ИСТОРИИ · НОВЫЕ ВОСПОМИНАНИЯ</div>
-</main>
-<script>
-function openMessage(){
-  const message=document.getElementById('message');
-  const button=document.getElementById('openBtn');
-  message.classList.add('show');
-  button.textContent='Поздравление открыто ✨';
-  button.disabled=true;
-  button.style.opacity='.7';
-  setTimeout(()=>message.scrollIntoView({behavior:'smooth',block:'start'}),180);
-  confetti();
-}
-function confetti(){
-  const symbols=['✦','✧','✿','✨','🤍'];
-  for(let i=0;i<32;i++){
-    const el=document.createElement('span');
-    el.textContent=symbols[Math.floor(Math.random()*symbols.length)];
-    el.style.cssText=`position:fixed;z-index:10;left:${Math.random()*100}vw;top:-30px;color:${Math.random()>.5?'#e8bd83':'#fff0d7'};font-size:${12+Math.random()*15}px;pointer-events:none;transition:transform ${2+Math.random()*2}s ease,opacity 2.5s ease`;
-    document.body.appendChild(el);
-    requestAnimationFrame(()=>{el.style.transform=`translateY(${window.innerHeight+80}px) rotate(${Math.random()*500}deg)`;el.style.opacity='0'});
-    setTimeout(()=>el.remove(),4300);
-  }
+CATS = {
+    "ryzhik": {
+        "id": "ryzhik",
+        "name": "Рыжик",
+        "rarity": Rarity.COMMON,
+        "personality": CatPersonality.PLAYFUL,
+        "description": "Рыжий весельчак. Обожает дневные бонусы.",
+        "ability": {
+            "id": "daily_bonus",
+            "name": "Солнечный бонус",
+            "desc": "+15% к ежедневным наградам",
+            "effect": {"daily_reward_mult": 1.15}
+        },
+        "base_stats": {"charm": 5, "luck": 4, "energy": 6},
+        "color_primary": (255, 159, 28),
+        "color_secondary": (255, 191, 105),
+        "unlock_cost": 0,
+        "friendship_max": 100,
+    },
+    "ten": {
+        "id": "ten",
+        "name": "Тень",
+        "rarity": Rarity.UNCOMMON,
+        "personality": CatPersonality.MYSTERIOUS,
+        "description": "Чёрный кот. Притягивает бонусные события.",
+        "ability": {
+            "id": "bonus_chance",
+            "name": "Теневой шанс",
+            "desc": "+20% шанс на бонусные события",
+            "effect": {"bonus_event_chance": 0.20}
+        },
+        "base_stats": {"charm": 4, "luck": 8, "energy": 5},
+        "color_primary": (30, 30, 40),
+        "color_secondary": (80, 80, 100),
+        "unlock_cost": 250,
+        "friendship_max": 120,
+    },
+    "korol": {
+        "id": "korol",
+        "name": "Король",
+        "rarity": Rarity.RARE,
+        "personality": CatPersonality.ROYAL,
+        "description": "Величественный кот. Даёт больше монет за задания.",
+        "ability": {
+            "id": "quest_coins",
+            "name": "Королевская дань",
+            "desc": "+25% монет за задания",
+            "effect": {"quest_reward_mult": 1.25}
+        },
+        "base_stats": {"charm": 9, "luck": 5, "energy": 4},
+        "color_primary": (255, 215, 0),
+        "color_secondary": (218, 165, 32),
+        "unlock_cost": 600,
+        "friendship_max": 150,
+    },
+    "kosmos": {
+        "id": "kosmos",
+        "name": "Космос",
+        "rarity": Rarity.EPIC,
+        "personality": CatPersonality.COSMIC,
+        "description": "Кот из галактик. Открывает особые эффекты.",
+        "ability": {
+            "id": "cosmic_fx",
+            "name": "Звёздная пыль",
+            "desc": "Космические эффекты + шанс джекпота",
+            "effect": {"visual_fx": "cosmic", "cosmic_jackpot_chance": 0.05}
+        },
+        "base_stats": {"charm": 7, "luck": 9, "energy": 7},
+        "color_primary": (100, 50, 200),
+        "color_secondary": (180, 100, 255),
+        "unlock_cost": 1500,
+        "friendship_max": 200,
+    },
+    "snegok": {
+        "id": "snegok",
+        "name": "Снежок",
+        "rarity": Rarity.COMMON,
+        "personality": CatPersonality.LAZY,
+        "description": "Белый лентяй. Даёт пассивный доход.",
+        "ability": {
+            "id": "passive_income",
+            "name": "Сонный доход",
+            "desc": "Пассивный доход",
+            "effect": {"passive_income": 2}
+        },
+        "base_stats": {"charm": 6, "luck": 3, "energy": 2},
+        "color_primary": (245, 245, 250),
+        "color_secondary": (200, 200, 220),
+        "unlock_cost": 180,
+        "friendship_max": 90,
+    },
+    "molniya": {
+        "id": "molniya",
+        "name": "Молния",
+        "rarity": Rarity.RARE,
+        "personality": CatPersonality.BRAVE,
+        "description": "Быстрый кот. Улучшает игру на реакцию.",
+        "ability": {
+            "id": "reaction_boost",
+            "name": "Молниеносная реакция",
+            "desc": "+15% очков в Котоавтомате",
+            "effect": {"reaction_score_mult": 1.15}
+        },
+        "base_stats": {"charm": 5, "luck": 6, "energy": 10},
+        "color_primary": (255, 80, 80),
+        "color_secondary": (255, 180, 50),
+        "unlock_cost": 800,
+        "friendship_max": 130,
+    },
 }
 
-const gameCanvas=document.getElementById('starGame');
-const gameCtx=gameCanvas.getContext('2d');
-const scoreEl=document.getElementById('score');
-const timeEl=document.getElementById('time');
-const gameButton=document.getElementById('gameButton');
-const gameHint=document.getElementById('gameHint');
-const bonusMessage=document.getElementById('bonusMessage');
-let gameRunning=false, gameScore=0, gameTime=25, catcherX=360, stars=[], spawnClock=0, lastFrame=0, animationId=0;
-const gameW=720, gameH=320, targetScore=8;
-function drawGame(){
-  const c=gameCtx; c.clearRect(0,0,gameW,gameH);
-  // distant stars
-  for(let i=0;i<34;i++){const x=(i*97+31)%gameW,y=(i*53+19)%245;c.fillStyle='rgba(255,244,218,'+(0.18+(i%4)*.09)+')';c.beginPath();c.arc(x,y,1+(i%3)*.45,0,Math.PI*2);c.fill();}
-  // soft horizon and home-shaped catcher
-  c.fillStyle='rgba(232,189,131,.12)';c.fillRect(0,286,gameW,34);
-  c.save();c.translate(catcherX,282);
-  c.fillStyle='#e8bd83';c.beginPath();c.moveTo(-43,0);c.lineTo(0,-27);c.lineTo(43,0);c.closePath();c.fill();
-  c.fillStyle='#fff0d7';c.fillRect(-34,0,68,25);c.fillStyle='#98745f';c.fillRect(-7,9,14,16);
-  c.restore();
-  stars.forEach(st=>{c.save();c.translate(st.x,st.y);c.rotate(st.rot);c.fillStyle='#ffe2a8';c.shadowColor='#ffe2a8';c.shadowBlur=16;c.beginPath();for(let i=0;i<10;i++){const r=i%2===0?st.r:st.r*.43;const a=-Math.PI/2+i*Math.PI/5;c.lineTo(Math.cos(a)*r,Math.sin(a)*r);}c.closePath();c.fill();c.restore();});
-  if(!gameRunning && gameScore===0){c.fillStyle='rgba(255,248,236,.7)';c.font='16px DM Sans';c.textAlign='center';c.fillText('Нажми «Начать игру» и лови звёзды!',360,150);}
-}
-function startGame(){
-  cancelAnimationFrame(animationId);gameRunning=true;gameScore=0;gameTime=25;catcherX=360;stars=[];spawnClock=0;lastFrame=0;
-  scoreEl.textContent='0 / '+targetScore;timeEl.textContent='25';bonusMessage.classList.remove('show');gameButton.textContent='Игра началась…';gameButton.disabled=true;gameHint.textContent='Лови звёздочки домиком внизу поля. У тебя есть 25 секунд!';
-  animationId=requestAnimationFrame(gameLoop);
-}
-function gameLoop(timestamp){
-  if(!gameRunning)return;
-  const dt=lastFrame?Math.min((timestamp-lastFrame)/1000,.04):0;lastFrame=timestamp;
-  gameTime=Math.max(0,gameTime-dt);spawnClock+=dt;
-  if(spawnClock>.72){spawnClock=0;stars.push({x:25+Math.random()*(gameW-50),y:-15,r:9+Math.random()*4,speed:105+Math.random()*65,rot:Math.random()*6});}
-  for(let i=stars.length-1;i>=0;i--){const st=stars[i];st.y+=st.speed*dt;st.rot+=dt*1.5;
-    if(st.y>255 && st.y<305 && Math.abs(st.x-catcherX)<48){stars.splice(i,1);gameScore++;scoreEl.textContent=gameScore+' / '+targetScore;if(gameScore>=targetScore){finishGame(true);return;}}
-    else if(st.y>gameH+20)stars.splice(i,1);
-  }
-  timeEl.textContent=Math.ceil(gameTime);drawGame();
-  if(gameTime<=0){finishGame(false);return;}
-  animationId=requestAnimationFrame(gameLoop);
-}
-function finishGame(won){gameRunning=false;cancelAnimationFrame(animationId);drawGame();gameButton.disabled=false;gameButton.textContent=won?'Сыграть ещё раз':'Попробовать ещё раз';
-  if(won){bonusMessage.classList.add('show');gameHint.textContent='Победа! Дополнительное поздравление уже открылось ниже. 🤍';setTimeout(()=>bonusMessage.scrollIntoView({behavior:'smooth',block:'center'}),250);}
-  else{gameHint.textContent='Время вышло! Ничего страшного — попробуй ещё раз, звёзды никуда не убегут.';}
-}
-function moveCatcher(event){const rect=gameCanvas.getBoundingClientRect();const scale=gameW/rect.width;catcherX=Math.max(45,Math.min(gameW-45,(event.clientX-rect.left)*scale));if(!gameRunning)drawGame();}
-gameCanvas.addEventListener('pointermove',moveCatcher);
-gameCanvas.addEventListener('pointerdown',moveCatcher);
-window.addEventListener('keydown',e=>{if(!gameRunning)return;if(e.key==='ArrowLeft'){catcherX=Math.max(45,catcherX-28);e.preventDefault();}if(e.key==='ArrowRight'){catcherX=Math.min(gameW-45,catcherX+28);e.preventDefault();}});
-drawGame();
+def get_cat_data(cat_id: str) -> dict:
+    return CATS.get(cat_id)
 
-</script>
-</body>
-</html>
+def get_all_cats() -> dict:
+    return CATS
