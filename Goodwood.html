@@ -1,167 +1,120 @@
-# casino/poker.py
-# Simplified Cat Poker. 5 cards, evaluate hand, multipliers.
+# casino/reaction.py
+# Catch falling toys / items. Score based on reaction + combos.
 
 import random
-from enum import Enum, auto
+import time
 
-class Rank(Enum):
-    TWO = 2
-    THREE = 3
-    FOUR = 4
-    FIVE = 5
-    SIX = 6
-    SEVEN = 7
-    EIGHT = 8
-    NINE = 9
-    TEN = 10
-    JACK = 11
-    QUEEN = 12
-    KING = 13
-    ACE = 14
+class FallingItem:
+    def __init__(self, x, speed, kind):
+        self.x = x
+        self.y = -20
+        self.speed = speed
+        self.kind = kind  # "toy", "fish", "bomb", "star"
+        self.caught = False
+        self.missed = False
 
-class Suit(Enum):
-    HEARTS = "♥"
-    DIAMONDS = "♦"
-    CLUBS = "♣"
-    SPADES = "♠"
-
-class HandRank(Enum):
-    HIGH_CARD = 1
-    PAIR = 2
-    TWO_PAIR = 3
-    THREE = 4
-    STRAIGHT = 5
-    FLUSH = 6
-    FULL_HOUSE = 7
-    FOUR = 8
-    STRAIGHT_FLUSH = 9
-
-HAND_PAYOUT = {
-    HandRank.HIGH_CARD: 0,
-    HandRank.PAIR: 1.2,
-    HandRank.TWO_PAIR: 2.5,
-    HandRank.THREE: 4,
-    HandRank.STRAIGHT: 6,
-    HandRank.FLUSH: 8,
-    HandRank.FULL_HOUSE: 12,
-    HandRank.FOUR: 25,
-    HandRank.STRAIGHT_FLUSH: 50,
-}
-
-HAND_NAMES = {
-    HandRank.HIGH_CARD: "Старшая карта",
-    HandRank.PAIR: "Пара",
-    HandRank.TWO_PAIR: "Две пары",
-    HandRank.THREE: "Тройка",
-    HandRank.STRAIGHT: "Стрит",
-    HandRank.FLUSH: "Флеш",
-    HandRank.FULL_HOUSE: "Фулл-хаус",
-    HandRank.FOUR: "Каре",
-    HandRank.STRAIGHT_FLUSH: "Стрит-флеш",
-}
-
-class Card:
-    def __init__(self, rank: Rank, suit: Suit):
-        self.rank = rank
-        self.suit = suit
-
-    def __str__(self):
-        names = {11: "J", 12: "Q", 13: "K", 14: "A"}
-        r = names.get(self.rank.value, str(self.rank.value))
-        return f"{r}{self.suit.value}"
-
-class CatPoker:
+class CatReaction:
     def __init__(self, resource_manager, time_system, collection):
         self.resources = resource_manager
         self.time = time_system
         self.collection = collection
-        self.bet = 15
-        self.hand = []
-        self.held = [False] * 5
-        self.phase = "bet"  # bet -> dealt -> result
+        self.active = False
+        self.items = []
+        self.score = 0
+        self.combo = 0
+        self.lives = 3
+        self.time_left = 30.0
+        self.spawn_timer = 0.0
+        self.bet = 20  # entry cost
         self.result = None
-        self.deck = []
+        self.player_x = 0.5  # 0..1
 
-    def _build_deck(self):
-        self.deck = [Card(r, s) for r in Rank for s in Suit]
-        random.shuffle(self.deck)
+    def can_start(self) -> bool:
+        return not self.active and self.resources.coins >= self.bet
 
-    def can_play(self) -> bool:
-        return self.resources.coins >= self.bet and self.phase == "bet"
-
-    def deal(self) -> bool:
-        if not self.can_play():
+    def start(self) -> bool:
+        if not self.can_start():
             return False
         self.resources.spend_coins(self.bet)
         self.resources.inc_stat("games_played")
         if self.time.is_night():
             self.resources.inc_stat("night_games")
-        self._build_deck()
-        self.hand = [self.deck.pop() for _ in range(5)]
-        self.held = [False] * 5
-        self.phase = "dealt"
+
+        self.active = True
+        self.items = []
+        self.score = 0
+        self.combo = 0
+        self.lives = 3
+        self.time_left = 30.0
+        self.spawn_timer = 0.0
         self.result = None
+        self.player_x = 0.5
         return True
 
-    def toggle_hold(self, idx: int):
-        if self.phase == "dealt" and 0 <= idx < 5:
-            self.held[idx] = not self.held[idx]
-
-    def draw(self):
-        if self.phase != "dealt":
+    def update(self, dt: float, player_x: float = None):
+        if not self.active:
             return
-        for i in range(5):
-            if not self.held[i]:
-                self.hand[i] = self.deck.pop()
-        self._evaluate()
-        self.phase = "result"
+        if player_x is not None:
+            self.player_x = max(0.05, min(0.95, player_x))
 
-    def _evaluate(self):
-        ranks = sorted([c.rank.value for c in self.hand])
-        suits = [c.suit for c in self.hand]
-        from collections import Counter
-        count = Counter(ranks)
-        values = sorted(count.values(), reverse=True)
-        is_flush = len(set(suits)) == 1
-        is_straight = ranks == list(range(ranks[0], ranks[0] + 5)) or ranks == [2, 3, 4, 5, 14]
+        self.time_left -= dt
+        self.spawn_timer -= dt
 
-        if is_straight and is_flush:
-            hr = HandRank.STRAIGHT_FLUSH
-        elif values == [4, 1]:
-            hr = HandRank.FOUR
-        elif values == [3, 2]:
-            hr = HandRank.FULL_HOUSE
-        elif is_flush:
-            hr = HandRank.FLUSH
-        elif is_straight:
-            hr = HandRank.STRAIGHT
-        elif values == [3, 1, 1]:
-            hr = HandRank.THREE
-        elif values == [2, 2, 1]:
-            hr = HandRank.TWO_PAIR
-        elif values == [2, 1, 1, 1]:
-            hr = HandRank.PAIR
-        else:
-            hr = HandRank.HIGH_CARD
+        abilities = self.collection.get_active_abilities()
+        score_mult = abilities.get("reaction_score_mult", 1.0)
 
-        mult = HAND_PAYOUT[hr] * self.time.get_bonus_multiplier()
-        payout = int(self.bet * mult)
+        # Spawn
+        if self.spawn_timer <= 0:
+            kind = random.choices(
+                ["toy", "fish", "star", "bomb"],
+                weights=[50, 25, 15, 10]
+            )[0]
+            x = random.uniform(0.1, 0.9)
+            speed = random.uniform(80, 160) * (1.0 + (30 - self.time_left) * 0.02)
+            self.items.append(FallingItem(x, speed, kind))
+            self.spawn_timer = random.uniform(0.4, 0.9)
 
+        # Move & check catch
+        catch_zone = 0.12
+        for item in self.items:
+            if item.caught or item.missed:
+                continue
+            item.y += item.speed * dt
+            if item.y > 280:  # bottom
+                item.missed = True
+                if item.kind != "bomb":
+                    self.lives -= 1
+                    self.combo = 0
+            elif abs(item.x - self.player_x) < catch_zone and 220 < item.y < 280:
+                item.caught = True
+                if item.kind == "bomb":
+                    self.lives -= 1
+                    self.combo = 0
+                    self.score = max(0, self.score - 30)
+                else:
+                    points = {"toy": 10, "fish": 25, "star": 50}[item.kind]
+                    self.combo += 1
+                    bonus = 1 + self.combo * 0.15
+                    self.score += int(points * bonus * score_mult)
+
+        self.items = [i for i in self.items if not i.caught and not i.missed and i.y < 320]
+
+        if self.lives <= 0 or self.time_left <= 0:
+            self._end()
+
+    def _end(self):
+        self.active = False
+        payout = int(self.score * 0.4 * self.time.get_bonus_multiplier())
         if payout > 0:
-            self.resources.add_coins(payout, "poker")
-            self.resources.inc_stat("poker_wins")
-            for cat in self.collection.get_owned()[:1]:
-                cat.add_friendship(2)
+            self.resources.add_coins(payout, "reaction")
+        if self.score > self.resources.get_stat("reaction_highscore"):
+            self.resources.set_stat("reaction_highscore", self.score)
+
+        for cat in self.collection.get_owned()[:2]:
+            cat.add_friendship(1.5)
 
         self.result = {
-            "hand_rank": hr,
-            "name": HAND_NAMES[hr],
+            "score": self.score,
             "payout": payout,
-            "cards": [str(c) for c in self.hand],
-            "message": f"{HAND_NAMES[hr]}! +{payout}" if payout > 0 else f"{HAND_NAMES[hr]}. Без выигрыша.",
+            "message": f"Счёт: {self.score} → +{payout} монет",
         }
-
-    def new_round(self):
-        self.phase = "bet"
-        self.hand = []
-        self.result = None
