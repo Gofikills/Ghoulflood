@@ -1,106 +1,80 @@
 
-# systems/collection.py
-# Manages owned cats, unlocking, friendship.
-
-from entities.cat import Cat
-from data.cats import get_all_cats, get_cat_data
+# systems/empire.py
+# Player's cat empire: level, rooms, passive income, upgrades.
+# Casino is the income source, empire is the long-term goal.
 
 
-class CatCollection:
+class Empire:
     def __init__(self):
-        self.cats = {}
+        self.level = 1
+        self.xp = 0
+        self.xp_to_next = 100
 
-        # Create all cats as locked by default
-        for cat_id in get_all_cats():
-            self.cats[cat_id] = Cat(cat_id, owned=False)
+        # Simple rooms that can be upgraded later
+        self.rooms = {
+            "lobby": {
+                "level": 1,
+                "name": "Лобби",
+                "bonus": 0
+            },
 
-        # Starter
-        self.unlock_cat("ryzhik")
+            "slots_hall": {
+                "level": 1,
+                "name": "Зал слотов",
+                "bonus": 0
+            },
 
-    def unlock_cat(self, cat_id: str) -> bool:
-        if cat_id not in self.cats:
-            return False
+            "vip": {
+                "level": 0,
+                "name": "VIP-зона",
+                "bonus": 0
+            },
+        }
 
-        cat = self.cats[cat_id]
+        self.passive_income_rate = 0
+        self.last_passive_claim = 0
 
-        if cat.owned:
-            return False
+    def add_xp(self, amount: int):
+        self.xp += amount
 
-        cat.owned = True
-        cat.friendship = 5
+        while self.xp >= self.xp_to_next:
+            self.xp -= self.xp_to_next
+            self.level += 1
 
-        return True
+            self.xp_to_next = int(
+                self.xp_to_next * 1.5
+            )
 
-    def try_buy_cat(self, cat_id: str, resources) -> tuple[bool, str]:
-        cat = self.cats.get(cat_id)
+            # Unlock things at levels
+            if self.level == 2:
+                self.rooms["vip"]["level"] = 1
 
-        if not cat:
-            return False, "Нет такого кота"
+            self.passive_income_rate = self.level * 1.5
 
-        if cat.owned:
-            return False, "Уже есть"
+    def get_passive_income(self, collection) -> int:
+        base = self.passive_income_rate
 
-        cost = cat.unlock_cost
+        # Cats with passive ability
+        abilities = collection.get_active_abilities()
+        extra = abilities.get("passive_income", 0)
 
-        if not resources.spend_coins(cost):
-            return False, f"Нужно {cost} монет"
-
-        self.unlock_cat(cat_id)
-        resources.inc_stat("cats_unlocked")
-
-        return True, f"Добро пожаловать, {cat.name}!"
-
-    def feed_cat(self, cat_id: str, resources) -> tuple[bool, str]:
-        cat = self.cats.get(cat_id)
-
-        if not cat or not cat.owned:
-            return False, "Нет кота"
-
-        if not resources.spend_fish(1):
-            return False, "Нет рыбок"
-
-        leveled = cat.add_friendship(8 + cat.level * 2)
-
-        msg = f"{cat.name} покушал! Дружба: {int(cat.friendship)}"
-
-        if leveled:
-            msg += " ★ Новый уровень дружбы!"
-
-        return True, msg
-
-    def get_owned(self) -> list:
-        return [
-            c for c in self.cats.values()
-            if c.owned
-        ]
-
-    def get_active_abilities(self) -> dict:
-        """Aggregate all ability effects from owned cats with enough friendship."""
-
-        total = {}
-
-        for cat in self.get_owned():
-            eff = cat.get_ability_effect()
-
-            for k, v in eff.items():
-                if k == "visual_fx":
-                    total[k] = v
-
-                elif isinstance(v, (int, float)):
-                    total[k] = total.get(k, 0) + v
-
-                else:
-                    total[k] = v
-
-        return total
+        return int(base + extra)
 
     def to_dict(self) -> dict:
         return {
-            cid: c.to_dict()
-            for cid, c in self.cats.items()
+            "level": self.level,
+            "xp": self.xp,
+            "xp_to_next": self.xp_to_next,
+            "rooms": self.rooms,
+            "passive_income_rate": self.passive_income_rate,
         }
 
     def load_dict(self, data: dict):
-        for cid, cdata in data.items():
-            if cid in self.cats:
-                self.cats[cid] = Cat.from_dict(cdata)
+        self.level = data.get("level", 1)
+        self.xp = data.get("xp", 0)
+        self.xp_to_next = data.get("xp_to_next", 100)
+        self.rooms = data.get("rooms", self.rooms)
+
+        self.passive_income_rate = data.get(
+            "passive_income_rate", 0
+        )
