@@ -1,80 +1,151 @@
 
-# systems/empire.py
-# Player's cat empire: level, rooms, passive income, upgrades.
-# Casino is the income source, empire is the long-term goal.
+# systems/achievement_system.py
+# Checks conditions against current game state.
+
+from data.achievements import ACHIEVEMENTS, get_achievement
+from data.cats import Rarity, get_all_cats
 
 
-class Empire:
-    def __init__(self):
-        self.level = 1
-        self.xp = 0
-        self.xp_to_next = 100
+class AchievementSystem:
+    def __init__(self, resource_manager, cat_collection, empire):
+        self.resources = resource_manager
+        self.collection = cat_collection
+        self.empire = empire
 
-        # Simple rooms that can be upgraded later
-        self.rooms = {
-            "lobby": {
-                "level": 1,
-                "name": "Лобби",
-                "bonus": 0
-            },
+        self.unlocked = set()
+        self.just_unlocked = []
 
-            "slots_hall": {
-                "level": 1,
-                "name": "Зал слотов",
-                "bonus": 0
-            },
+    def check_all(self):
+        """Call periodically or after important events."""
 
-            "vip": {
-                "level": 0,
-                "name": "VIP-зона",
-                "bonus": 0
-            },
-        }
+        self.just_unlocked.clear()
 
-        self.passive_income_rate = 0
-        self.last_passive_claim = 0
+        for aid, ach in ACHIEVEMENTS.items():
+            if aid in self.unlocked:
+                continue
 
-    def add_xp(self, amount: int):
-        self.xp += amount
+            if self._check_condition(ach["condition"]):
+                self._unlock(aid, ach)
 
-        while self.xp >= self.xp_to_next:
-            self.xp -= self.xp_to_next
-            self.level += 1
+    def _check_condition(self, cond: dict) -> bool:
+        condition_type = cond.get("type")
 
-            self.xp_to_next = int(
-                self.xp_to_next * 1.5
+        if condition_type == "stat":
+            value = self.resources.get_stat(
+                cond["key"], 0
             )
 
-            # Unlock things at levels
-            if self.level == 2:
-                self.rooms["vip"]["level"] = 1
+            operator = cond.get("op", ">=")
+            target = cond["value"]
 
-            self.passive_income_rate = self.level * 1.5
+            if operator == ">=":
+                return value >= target
 
-    def get_passive_income(self, collection) -> int:
-        base = self.passive_income_rate
+            if operator == ">":
+                return value > target
 
-        # Cats with passive ability
-        abilities = collection.get_active_abilities()
-        extra = abilities.get("passive_income", 0)
+            if operator == "==":
+                return value == target
 
-        return int(base + extra)
+            return False
+
+        if condition_type == "collection_count":
+            owned = sum(
+                1 for cat in self.collection.cats.values()
+                if cat.owned
+            )
+
+            return owned >= cond["value"]
+
+        if condition_type == "rarity_complete":
+            rarity_name = cond["rarity"]
+            rarity = Rarity[rarity_name]
+
+            all_of = [
+                cat for cat in get_all_cats().values()
+                if cat["rarity"] == rarity
+            ]
+
+            owned_of = [
+                cat for cat in self.collection.cats.values()
+                if cat.owned and cat.rarity == rarity
+            ]
+
+            return len(owned_of) >= len(all_of)
+
+        if condition_type == "max_friendship":
+            max_friendship = max(
+                (
+                    cat.friendship
+                    for cat in self.collection.cats.values()
+                    if cat.owned
+                ),
+                default=0
+            )
+
+            return max_friendship >= cond["value"]
+
+        if condition_type == "empire_level":
+            return self.empire.level >= cond["value"]
+
+        if condition_type == "secret":
+            return self.resources.get_stat(
+                cond["key"], False
+            )
+
+        return False
+
+    def _unlock(self, aid: str, ach: dict):
+        self.unlocked.add(aid)
+        self.just_unlocked.append(ach)
+
+        # Give rewards
+        reward = ach.get("reward", {})
+
+        if "coins" in reward:
+            self.resources.add_coins(
+                reward["coins"],
+                "achievement"
+            )
+
+        if "friendship_all" in reward:
+            for cat in self.collection.cats.values():
+                if cat.owned:
+                    cat.add_friendship(
+                        reward["friendship_all"]
+                    )
+
+        if "unlock_cat" in reward:
+            self.collection.unlock_cat(
+                reward["unlock_cat"]
+            )
+
+    def is_unlocked(self, aid: str) -> bool:
+        return aid in self.unlocked
+
+    def get_progress_text(self, aid: str) -> str:
+        achievement = get_achievement(aid)
+
+        if not achievement:
+            return ""
+
+        condition = achievement["condition"]
+
+        if condition["type"] == "stat":
+            current = self.resources.get_stat(
+                condition["key"], 0
+            )
+
+            return f"{current}/{condition['value']}"
+
+        return ""
 
     def to_dict(self) -> dict:
         return {
-            "level": self.level,
-            "xp": self.xp,
-            "xp_to_next": self.xp_to_next,
-            "rooms": self.rooms,
-            "passive_income_rate": self.passive_income_rate,
+            "unlocked": list(self.unlocked)
         }
 
     def load_dict(self, data: dict):
-        self.level = data.get("level", 1)
-        self.xp = data.get("xp", 0)
-        self.xp_to_next = data.get("xp_to_next", 100)
-        self.rooms = data.get("rooms", self.rooms)
-
-        self.passive_income_rate = data.get(
-            "passive_income_rate", 0
+        self.unlocked = set(
+            data.get("unlocked", [])
         )
