@@ -1,120 +1,82 @@
-# casino/reaction.py
-# Catch falling toys / items. Score based on reaction + combos.
+# casino/roulette.py
+# Simple cat-themed roulette: colors + special symbols.
 
 import random
-import time
 
-class FallingItem:
-    def __init__(self, x, speed, kind):
-        self.x = x
-        self.y = -20
-        self.speed = speed
-        self.kind = kind  # "toy", "fish", "bomb", "star"
-        self.caught = False
-        self.missed = False
-
-class CatReaction:
+class CatRoulette:
     def __init__(self, resource_manager, time_system, collection):
         self.resources = resource_manager
         self.time = time_system
         self.collection = collection
-        self.active = False
-        self.items = []
-        self.score = 0
-        self.combo = 0
-        self.lives = 3
-        self.time_left = 30.0
-        self.spawn_timer = 0.0
-        self.bet = 20  # entry cost
+        self.bet = 10
+        self.choice = None  # "red", "black", "green", "cat", "fish"
         self.result = None
-        self.player_x = 0.5  # 0..1
+        self.spinning = False
+        self.spin_time = 0.0
 
-    def can_start(self) -> bool:
-        return not self.active and self.resources.coins >= self.bet
+        # Wheel: 0 = green/jackpot, 1-7 red, 8-14 black, specials mixed
+        self.wheel = (
+            ["green"] +
+            ["red"] * 6 +
+            ["black"] * 6 +
+            ["cat"] * 2 +
+            ["fish"] * 2
+        )
 
-    def start(self) -> bool:
-        if not self.can_start():
+    def can_bet(self) -> bool:
+        return not self.spinning and self.resources.coins >= self.bet
+
+    def place_bet(self, choice: str) -> bool:
+        if not self.can_bet():
             return False
+        if choice not in ("red", "black", "green", "cat", "fish"):
+            return False
+        self.choice = choice
         self.resources.spend_coins(self.bet)
         self.resources.inc_stat("games_played")
         if self.time.is_night():
             self.resources.inc_stat("night_games")
-
-        self.active = True
-        self.items = []
-        self.score = 0
-        self.combo = 0
-        self.lives = 3
-        self.time_left = 30.0
-        self.spawn_timer = 0.0
+        self.spinning = True
+        self.spin_time = 0.0
         self.result = None
-        self.player_x = 0.5
         return True
 
-    def update(self, dt: float, player_x: float = None):
-        if not self.active:
+    def update(self, dt: float):
+        if not self.spinning:
             return
-        if player_x is not None:
-            self.player_x = max(0.05, min(0.95, player_x))
+        self.spin_time += dt
+        if self.spin_time >= 2.2:
+            self.spinning = False
+            self._resolve()
 
-        self.time_left -= dt
-        self.spawn_timer -= dt
+    def _resolve(self):
+        landed = random.choice(self.wheel)
+        payout = 0
+        mult = self.time.get_bonus_multiplier()
 
-        abilities = self.collection.get_active_abilities()
-        score_mult = abilities.get("reaction_score_mult", 1.0)
+        if landed == self.choice:
+            if landed == "green":
+                payout = int(self.bet * 14 * mult)
+            elif landed in ("cat", "fish"):
+                payout = int(self.bet * 6 * mult)
+            else:
+                payout = int(self.bet * 2 * mult)
 
-        # Spawn
-        if self.spawn_timer <= 0:
-            kind = random.choices(
-                ["toy", "fish", "star", "bomb"],
-                weights=[50, 25, 15, 10]
-            )[0]
-            x = random.uniform(0.1, 0.9)
-            speed = random.uniform(80, 160) * (1.0 + (30 - self.time_left) * 0.02)
-            self.items.append(FallingItem(x, speed, kind))
-            self.spawn_timer = random.uniform(0.4, 0.9)
-
-        # Move & check catch
-        catch_zone = 0.12
-        for item in self.items:
-            if item.caught or item.missed:
-                continue
-            item.y += item.speed * dt
-            if item.y > 280:  # bottom
-                item.missed = True
-                if item.kind != "bomb":
-                    self.lives -= 1
-                    self.combo = 0
-            elif abs(item.x - self.player_x) < catch_zone and 220 < item.y < 280:
-                item.caught = True
-                if item.kind == "bomb":
-                    self.lives -= 1
-                    self.combo = 0
-                    self.score = max(0, self.score - 30)
-                else:
-                    points = {"toy": 10, "fish": 25, "star": 50}[item.kind]
-                    self.combo += 1
-                    bonus = 1 + self.combo * 0.15
-                    self.score += int(points * bonus * score_mult)
-
-        self.items = [i for i in self.items if not i.caught and not i.missed and i.y < 320]
-
-        if self.lives <= 0 or self.time_left <= 0:
-            self._end()
-
-    def _end(self):
-        self.active = False
-        payout = int(self.score * 0.4 * self.time.get_bonus_multiplier())
         if payout > 0:
-            self.resources.add_coins(payout, "reaction")
-        if self.score > self.resources.get_stat("reaction_highscore"):
-            self.resources.set_stat("reaction_highscore", self.score)
-
-        for cat in self.collection.get_owned()[:2]:
-            cat.add_friendship(1.5)
+            self.resources.add_coins(payout, "roulette")
+            self.resources.inc_stat("roulette_wins")
+            for cat in self.collection.get_owned()[:1]:
+                cat.add_friendship(1)
 
         self.result = {
-            "score": self.score,
+            "landed": landed,
+            "choice": self.choice,
             "payout": payout,
-            "message": f"Счёт: {self.score} → +{payout} монет",
+            "won": payout > 0,
+            "message": f"Выпало: {landed.upper()}! +{payout}" if payout > 0 else f"Выпало: {landed}. Не угадал.",
         }
+
+    def get_display_wheel_position(self) -> float:
+        if self.spinning:
+            return (self.spin_time * 8) % 1.0
+        return 0.0
