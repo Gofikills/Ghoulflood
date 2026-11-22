@@ -1,90 +1,129 @@
-from data.achievements import ACHIEVEMENTS, get_achievement
-from data.cats import Rarity, get_all_cats
 
-class AchievementSystem:
-    def __init__(self, resource_manager, cat_collection, empire):
-        self.resources = resource_manager
-        self.collection = cat_collection
-        self.empire = empire
-        self.unlocked = set()  # ids
-        self.just_unlocked = []  # for UI popup this frame
+# core/time_system.py
+# Day-night cycle that changes visuals, music and some bonuses.
 
-    def check_all(self):
-        """Call periodically or after important events."""
-        self.just_unlocked.clear()
-        for aid, ach in ACHIEVEMENTS.items():
-            if aid in self.unlocked:
-                continue
-            if self._check_condition(ach["condition"]):
-                self._unlock(aid, ach)
+from enum import Enum, auto
+import math
 
-    def _check_condition(self, cond: dict) -> bool:
-        t = cond.get("type")
-        if t == "stat":
-            val = self.resources.get_stat(cond["key"], 0)
-            op = cond.get("op", ">=")
-            target = cond["value"]
-            if op == ">=":
-                return val >= target
-            if op == ">":
-                return val > target
-            if op == "==":
-                return val == target
-            return False
 
-        if t == "collection_count":
-            owned = sum(1 for c in self.collection.cats.values() if c.owned)
-            return owned >= cond["value"]
+class TimeOfDay(Enum):
+    MORNING = auto()   # 6-10
+    DAY = auto()       # 10-17
+    EVENING = auto()   # 17-21
+    NIGHT = auto()     # 21-6
 
-        if t == "rarity_complete":
-            rarity_name = cond["rarity"]
-            rarity = Rarity[rarity_name]
-            all_of = [c for c in get_all_cats().values() if c["rarity"] == rarity]
-            owned_of = [c for c in self.collection.cats.values()
-                        if c.owned and c.rarity == rarity]
-            return len(owned_of) >= len(all_of)
 
-        if t == "max_friendship":
-            max_f = max((c.friendship for c in self.collection.cats.values() if c.owned), default=0)
-            return max_f >= cond["value"]
+class TimeSystem:
+    """
+    Manages in-game time.
+    One full day = day_length_seconds real seconds.
+    Visuals, ambient, bonuses change with period.
+    """
 
-        if t == "empire_level":
-            return self.empire.level >= cond["value"]
+    def __init__(self, day_length_seconds: float = 180.0):
+        self.day_length = day_length_seconds
+        self.time = 0.0
+        self.paused = False
 
-        if t == "secret":
-            return self.resources.get_stat(cond["key"], False)
+        # Visual palettes for each period
+        self.palettes = {
+            TimeOfDay.MORNING: {
+                "sky_top": (255, 180, 120),
+                "sky_bottom": (255, 220, 180),
+                "floor": (60, 50, 45),
+                "accent": (255, 140, 80),
+                "neon": 0.3,
+                "light": 0.85,
+                "name": "Утро",
+                "music_mood": "calm",
+            },
 
-        return False
+            TimeOfDay.DAY: {
+                "sky_top": (120, 180, 255),
+                "sky_bottom": (200, 230, 255),
+                "floor": (50, 55, 60),
+                "accent": (255, 200, 50),
+                "neon": 0.15,
+                "light": 1.0,
+                "name": "День",
+                "music_mood": "upbeat",
+            },
 
-    def _unlock(self, aid: str, ach: dict):
-        self.unlocked.add(aid)
-        self.just_unlocked.append(ach)
-        # Give rewards
-        reward = ach.get("reward", {})
-        if "coins" in reward:
-            self.resources.add_coins(reward["coins"], "achievement")
-        if "friendship_all" in reward:
-            for cat in self.collection.cats.values():
-                if cat.owned:
-                    cat.add_friendship(reward["friendship_all"])
-        if "unlock_cat" in reward:
-            self.collection.unlock_cat(reward["unlock_cat"])
+            TimeOfDay.EVENING: {
+                "sky_top": (255, 100, 80),
+                "sky_bottom": (180, 60, 100),
+                "floor": (40, 30, 45),
+                "accent": (255, 80, 120),
+                "neon": 0.7,
+                "light": 0.6,
+                "name": "Вечер",
+                "music_mood": "mellow",
+            },
 
-    def is_unlocked(self, aid: str) -> bool:
-        return aid in self.unlocked
+            TimeOfDay.NIGHT: {
+                "sky_top": (15, 10, 40),
+                "sky_bottom": (30, 20, 60),
+                "floor": (15, 12, 25),
+                "accent": (180, 80, 255),
+                "neon": 1.0,
+                "light": 0.35,
+                "name": "Ночь",
+                "music_mood": "night",
+            },
+        }
 
-    def get_progress_text(self, aid: str) -> str:
-        ach = get_achievement(aid)
-        if not ach:
-            return ""
-        cond = ach["condition"]
-        if cond["type"] == "stat":
-            current = self.resources.get_stat(cond["key"], 0)
-            return f"{current}/{cond['value']}"
-        return ""
+    def update(self, dt: float):
+        if self.paused:
+            return
 
-    def to_dict(self) -> dict:
-        return {"unlocked": list(self.unlocked)}
+        self.time = (self.time + dt / self.day_length) % 1.0
 
-    def load_dict(self, data: dict):
-        self.unlocked = set(data.get("unlocked", []))
+    def get_period(self) -> TimeOfDay:
+        t = self.time
+
+        if 0.25 <= t < 0.42:
+            return TimeOfDay.MORNING
+
+        elif 0.42 <= t < 0.70:
+            return TimeOfDay.DAY
+
+        elif 0.70 <= t < 0.85:
+            return TimeOfDay.EVENING
+
+        else:
+            return TimeOfDay.NIGHT
+
+    def get_palette(self) -> dict:
+        return self.palettes[self.get_period()]
+
+    def get_hour_string(self) -> str:
+        hour = int(self.time * 24) % 24
+        minute = int((self.time * 24 * 60) % 60)
+
+        return f"{hour:02d}:{minute:02d}"
+
+    def is_night(self) -> bool:
+        return self.get_period() == TimeOfDay.NIGHT
+
+    def is_day(self) -> bool:
+        return self.get_period() in (
+            TimeOfDay.MORNING,
+            TimeOfDay.DAY
+        )
+
+    def get_bonus_multiplier(self) -> float:
+        """Night gives slight luck bonus, day gives energy etc."""
+
+        period = self.get_period()
+
+        if period == TimeOfDay.NIGHT:
+            return 1.12
+
+        if period == TimeOfDay.EVENING:
+            return 1.05
+
+        return 1.0
+
+    def get_normalized_time(self) -> float:
+        return self.time
+
